@@ -3,21 +3,26 @@ import { useState, useEffect } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
-import Divider from "@mui/material/Divider";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import EmailIcon from "@mui/icons-material/Email";
 import LockIcon from "@mui/icons-material/Lock";
 import InputAdornment from "@mui/material/InputAdornment";
+import axios from "axios";
 function Loginscreen() {
   const [email, setemail] = useState("");
   const [password, setpassword] = useState("");
-  function loginUser() {
+  async function loginUser() {
     const user = {
       email,
       password,
     };
-    console.log(user);
+    try {
+      const response = await axios.post("/api/users/login", user);
+      console.log(response.data );
+    } catch (error) {
+      console.log(error);
+    }
   }
   return (
     <Box display="flex" justifyContent="center">
@@ -59,7 +64,7 @@ function Loginscreen() {
             <Button
               variant="outlined"
               sx={{ width: "20ch" }}
-              onClick={loginUser()}
+              onClick={loginUser}
             >
               Login
             </Button>
