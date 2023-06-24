@@ -7,22 +7,36 @@ import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import EmailIcon from "@mui/icons-material/Email";
 import LockIcon from "@mui/icons-material/Lock";
+import Loader from "../components/Loader";
+import Error from "../components/Error";
+import Success from "../components/Success";
 import InputAdornment from "@mui/material/InputAdornment";
 import axios from "axios";
 function Loginscreen() {
   const [email, setemail] = useState("");
   const [password, setpassword] = useState("");
+  const [loading, setloading] = useState(false);
+  const [success, setsuccess] = useState(false);
+  const [error, seterror] = useState("false");
   async function loginUser() {
+    setloading(true);
+    seterror("false");
     const user = {
       email,
       password,
     };
     try {
       const response = await axios.post("/api/users/login", user);
-      console.log(response.data );
+      console.log(response.data);
+      setsuccess(true);
+      localStorage.setItem("currentUser", JSON.stringify(response.data));
+      setTimeout(() => {
+        window.location.href = "/home";
+      }, 500);
     } catch (error) {
-      console.log(error);
+      seterror("Login Failed.. Please Try again!!");
     }
+    setloading(false);
   }
   return (
     <Box display="flex" justifyContent="center">
@@ -30,6 +44,8 @@ function Loginscreen() {
         <Typography noWrap variant="h4">
           Login Screen
         </Typography>
+        {loading && <Loader />}
+        {error != "false" && <Error errorMessage={error} />}
         <Stack direction="column" marginTop={"30px"} spacing={1}>
           <TextField
             id="outlined-basic"
@@ -69,6 +85,7 @@ function Loginscreen() {
               Login
             </Button>
           </Stack>
+          {success && <Success message="Login Successful" />}
         </Stack>
         <Stack
           direction="row"
@@ -80,7 +97,9 @@ function Loginscreen() {
           <Typography variant="button" style={{ marginRight: "2px" }}>
             New User?
           </Typography>
-          <Button>Register</Button>
+          <Button onClick={() => (window.location.href = "/register")}>
+            Register
+          </Button>
         </Stack>
       </Stack>
     </Box>

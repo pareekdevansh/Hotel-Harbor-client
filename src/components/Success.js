@@ -1,16 +1,23 @@
-import React from 'react'
-import Alert from '@mui/material/Alert';
-import AlertTitle from '@mui/material/AlertTitle';
+import React from "react";
+import Alert from "@mui/material/Alert";
+import AlertTitle from "@mui/material/AlertTitle";
 
-function Success() {
-    return (
-        <div style={{ float: 'bottom' }}>
-            <Alert severity="success">
-                <AlertTitle>Success</AlertTitle>
-                This is a success alert — <strong>check it out!</strong>
-            </Alert>
-        </div>
-    )
+function Success({ message }) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        bottom: "20px",
+        left: "50%",
+        transform: "translateX(-50%)",
+      }}
+    >
+      <Alert severity="success">
+        <AlertTitle>Success</AlertTitle>
+        {message}
+      </Alert>
+    </div>
+  );
 }
 
-export default Success
+export default Success;
