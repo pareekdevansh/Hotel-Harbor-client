@@ -5,12 +5,18 @@ import Loader from "../components/Loader";
 import Error from "../components/Error";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
-import Typograph from "@mui/material/Typography";
+import BasicDatePicker from "../components/Datepicker";
+import dayjs from "dayjs";
 function Homescreen() {
   const [rooms, setrooms] = useState([]);
   const [loading, setloading] = useState(true);
   const [error, seterror] = useState(false);
   const [user, setuser] = useState();
+  const today = dayjs();
+  const threedaylater = today.add(3, "day");
+  const dateFormat = "DD/MM/YYYY";
+  const [checkInDate, setCheckInDate] = useState(today);
+  const [checkOutDate, setCheckOutDate] = useState(threedaylater);
   useEffect(() => {
     async function getallrooms() {
       try {
@@ -29,22 +35,37 @@ function Homescreen() {
     }
     getallrooms();
   }, []);
-
+  const handleDateChange = (date) => {
+    setCheckInDate(date[0]);
+    setCheckOutDate(date[1]);
+    console.log(date);
+  };
   return (
     <Box className="container">
-      <Box direction={"column"} className="col horizontal-center">
+      <Box
+        direction={"column"}
+        margin={"10px"}
+        className="col horizontal-center"
+      >
         {loading ? (
           <Loader />
         ) : error ? (
           <Error />
         ) : (
-          rooms.map((room) => {
-            return (
+          <Box>
+            <Stack direction={"row"} spacing={2}>
+              <BasicDatePicker checkInDate={checkInDate} checkOutDate={checkOutDate} onDateSelected={handleDateChange} />
+            </Stack>
+            {rooms.map((room) => (
               <div className="col m-4">
-                <Room room={room} />
+                <Room
+                  room={room}
+                  fromdate={checkInDate}
+                  todate={checkOutDate}
+                />
               </div>
-            );
-          })
+            ))}
+          </Box>
         )}
       </Box>
     </Box>

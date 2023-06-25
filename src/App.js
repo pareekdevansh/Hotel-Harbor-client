@@ -15,7 +15,10 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/home" Component={Homescreen} />
-          <Route path="/book/:roomid" Component={Bookingscreen} />
+          <Route
+            path="/book/:roomid/:fromdate/:todate"
+            Component={Bookingscreen}
+          />
           <Route path="/register" Component={Registerscreen} />
           <Route path="/login" Component={Loginscreen} />
         </Routes>
