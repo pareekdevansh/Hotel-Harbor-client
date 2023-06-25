@@ -5,13 +5,12 @@ import { Link } from "react-router-dom";
 
 function Room({ room, fromdate, todate }) {
   const [show, setShow] = useState(false);
-  console.log(`room id is ${room._id}`);
-  console.log("room id is " + room._id);
+  // console.log(`room id is ${room._id}`);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
-  console.log(room);
-  console.log(fromdate);
-  console.log(todate);
+  // console.log(room);
+  // console.log(fromdate);
+  // console.log(todate);
   return (
     <div className="row box-shadow justify-content-center">
       <div className="col">
