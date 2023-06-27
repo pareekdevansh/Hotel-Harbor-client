@@ -5,46 +5,27 @@ import Loader from "../components/Loader";
 import Error from "../components/Error";
 import dayjs from "dayjs";
 import Success from "../components/Success";
-
+import PaymentButton from "../components/PayButton";
 function Bookingscreen() {
   const roomid = useParams().roomid;
   const checkInDate = dayjs(useParams().fromdate);
   const checkOutDate = dayjs(useParams().todate);
   const [user, setuser] = useState(null);
-  const [room, setroom] = useState();
+  const [room, setroom] = useState(null);
   const [loading, setloading] = useState(true);
   const [error, seterror] = useState("false");
   const [success, setSuccess] = useState(false);
   const [numberOfDays, setNumberOfDays] = useState(3);
-
+  const [totalAmount, setTotalAmount] = useState(null);
   useEffect(() => {
-    async function getroom() {
-      try {
-        setloading(true);
-        seterror("false");
-        // Getting user data
-        setuser(JSON.parse(localStorage.getItem("currentUser")));
-        console.log(`##@@ ${roomid}`);
-
-        // Getting room details
-        const data = (
-          await axios.post("/api/rooms/getroombyid/", { id: roomid })
-        ).data;
-        console.log(`##@@ ${data}`);
-
-        // Calculating number of days
-        setNumberOfDays(checkOutDate.diff(checkInDate, "day") + 1);
-        setroom(data);
-        setloading(false);
-      } catch (error) {
-        seterror(`Something went wrong!!!`);
-        console.log(`##@@ ${error}`);
-        setloading(false);
-      }
-    }
-
     getroom();
   }, []);
+  useEffect(() => {
+    if (room != null) {
+      setNumberOfDays(checkOutDate.diff(checkInDate, "days") + 1);
+      setTotalAmount(room.rentPerDay * numberOfDays);
+    }
+  }, [room]);
   useEffect(() => {
     if (success) {
       setTimeout(() => {
@@ -53,22 +34,48 @@ function Bookingscreen() {
     }
   }, [success]);
 
-  async function bookRoom() {
+  async function getroom() {
+    setloading(true);
+    seterror("false");
+    try {
+      // Getting user data
+      setuser(JSON.parse(localStorage.getItem("currentUser")));
+      // Getting room details
+      const data = (await axios.post("/api/rooms/getroombyid/", { id: roomid }))
+        .data;
+      setroom(data);
+      setloading(false);
+    } catch (error) {
+      seterror(`Something went wrong!!!`);
+      setloading(false);
+    }
+  }
+
+  async function handleCheckoutEvent() {
     setloading(true);
     const booking = {
-      roomId: roomid,
-      userId: user._id,
+      roomId: room?._id,
+      roomName: room?.name,
       checkInDate: checkInDate,
       checkOutDate: checkOutDate,
+      totalAmount: totalAmount,
     };
-    try {
-      const response = await axios.post("/api/bookings/bookroom/", booking);
-      setloading(false);
-      setSuccess(true);
-    } catch (error) {
-      setloading(false);
-      seterror(`Booking Failed!!!`);
-    }
+    console.log(JSON.stringify(booking));
+    await axios
+      .post("/api/stripe/create-checkout-session/", booking)
+      .then((response) => {
+        console.log("session created!! ");
+        console.log(response);
+        if (response.data.url) {
+          console.log(`response data url is ${response.data.url}`);
+          setloading(false);
+          window.location.href = response.data.url;
+        }
+      })
+      .catch((error) => {
+        seterror(error);
+        setloading(false);
+      });
   }
 
   return (
@@ -97,29 +104,22 @@ function Bookingscreen() {
               className="col-md-4 m-2 mt-auto"
             >
               <div>
-                <p>Booking Details</p>
+                <b>Booking Details</b>
                 <hr />
-                <b>
-                  <p>Name: {user?.name}</p>
-                  <p>From date: {checkInDate.format("DD/MM/YYYY")}</p>
-                  <p>To date: {checkOutDate.format("DD/MM/YYYY")}</p>
-                  <p>Max Capacity: {room.maxCount}</p>
-                </b>
+                <p>Name: {user?.name}</p>
+                <p>From date: {checkInDate.format("DD/MM/YYYY")}</p>
+                <p>To date: {checkOutDate.format("DD/MM/YYYY")}</p>
+                <p>Max Capacity: {room?.maxCount}</p>
               </div>
               <div>
-                <p>Amount</p>
+                <b>Amount</b>
                 <hr />
-
-                <b>
-                  <p>Total Days: {numberOfDays}</p>
-                  <p>Per Day Charge: {room.rentPerDay}</p>
-                  <p>Total Rent: {numberOfDays * room.rentPerDay}</p>
-                </b>
+                <p>Total Days: {numberOfDays}</p>
+                <p>Per Day Charge: {room?.rentPerDay}</p>
+                <p>Total Rent: {totalAmount}</p>
               </div>
               <div>
-                <button className="btn btn-primary" onClick={bookRoom}>
-                  Pay Now
-                </button>
+                <PaymentButton handleCheckout={handleCheckoutEvent} />
               </div>
             </div>
           </div>
