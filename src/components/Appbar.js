@@ -27,7 +27,10 @@ export default function MenuAppBar() {
   };
   const onNavigateToMyBookings = () => {
     window.location.href = "/bookings";
-  }
+  };
+  const onNavigateToUserProfile = () => {
+    window.location.href = "/profile";
+  };
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -92,8 +95,10 @@ export default function MenuAppBar() {
                   open={Boolean(anchorEl)}
                   onClose={handleClose}
                 >
-                  <MenuItem onClick={handleClose}>Profile</MenuItem>
-                  <MenuItem onClick={onNavigateToMyBookings}>My Bookings</MenuItem>
+                  <MenuItem onClick={onNavigateToUserProfile}>Profile</MenuItem>
+                  <MenuItem onClick={onNavigateToMyBookings}>
+                    My Bookings
+                  </MenuItem>
                   <MenuItem onClick={onLogOut}>Log Out</MenuItem>
                 </Menu>
               </div>

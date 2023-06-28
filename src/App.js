@@ -10,6 +10,7 @@ import CheckoutSuccess from "./components/PaymentSuccess";
 import NotFound from "./components/NotFound";
 import Error from "./components/Error";
 import MyBookingsScreen from "./screens/MyBookingsScreen";
+import UserProfile from "./screens/ProfileScreen";
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
           />
           <Route path="/bookings" Component={MyBookingsScreen} />
           <Route path="/notfound" Component={NotFound} />
+          <Route path="/profile" Component={UserProfile} />
         </Routes>
       </BrowserRouter>
     </div>
