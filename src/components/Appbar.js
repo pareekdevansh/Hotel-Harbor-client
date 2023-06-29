@@ -13,11 +13,11 @@ import MenuItem from "@mui/material/MenuItem";
 import Menu from "@mui/material/Menu";
 import { useState, useEffect } from "react";
 import CheckoutSuccess from "./PaymentSuccess";
+
 export default function MenuAppBar() {
   const [auth, setAuth] = React.useState(true);
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [user, setuser] = useState(null);
-
   useEffect(() => {
     setuser(JSON.parse(localStorage.getItem("currentUser")));
   }, []);
@@ -40,7 +40,7 @@ export default function MenuAppBar() {
   };
   function onLogOut() {
     // TODO show loading
-    localStorage.removeItem("currentUser");
+    localStorage.removeItem("authToken");
     window.location.href = "/login";
   }
   return (
@@ -51,7 +51,7 @@ export default function MenuAppBar() {
             variant="h6"
             textAlign={"start"}
             component="div"
-            onClick={() => (window.location.href = "/home")}
+            onClick={() => (window.location.href = "/")}
             sx={{
               flexGrow: 1,
               cursor: "pointer",

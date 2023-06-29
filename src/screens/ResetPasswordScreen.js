@@ -7,7 +7,7 @@ import {
   Button,
   Stack,
 } from "@mui/material";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import Loader from "../components/Loader";
 import Success from "../components/Success";
@@ -21,6 +21,7 @@ const ResetPasswordScreen = () => {
   const [error, setError] = useState("");
   const duration = 3000;
   const resetToken = useParams().resetToken;
+  const navigate = useNavigate();
 
   const resetPasswordHandler = async () => {
     if (password !== confirmPassword) {
@@ -34,14 +35,20 @@ const ResetPasswordScreen = () => {
       },
     };
     try {
-      const response = await axios.post(
+      console.log("token is : ", resetToken);
+      const response = await axios.put(
         `/api/auth/resetpassword/${resetToken}`,
-        { email },
+        { password },
         config
       );
       console.log(response);
+      setLoading(false);
       setSuccess("Password Reset Successful!");
+      setTimeout(() => {
+        navigate("/login");
+      }, duration);
     } catch (error) {
+      setLoading(false);
       setError(error.response.data.error || "Something went wrong!");
     }
   };
@@ -54,7 +61,7 @@ const ResetPasswordScreen = () => {
           <>
             <Error errorMessage={success} />
             {setTimeout(() => {
-              setSuccess("");
+              setError("");
             }, duration)}
           </>
         ) : success ? (

@@ -27,6 +27,9 @@ function LoginScreen() {
   const navigateToRegisterScreen = () => {
     navigate("/register ");
   };
+  const navigateToForgotPassword = () => {
+    navigate("/forgotpassword");
+  };
   useEffect(() => {
     if (localStorage.getItem("authToken")) {
       navigate("/");
@@ -105,6 +108,13 @@ function LoginScreen() {
             label="Password"
             variant="outlined"
           />
+          <Button
+            variant="text"
+            sx={{ width: "20ch", float: "right" }}
+            onClick={navigateToForgotPassword}
+          >
+            <i>forgot password?</i>
+          </Button>
           <Stack direction="row" justifyContent="center">
             <Button
               variant="outlined"

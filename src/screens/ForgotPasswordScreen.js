@@ -27,21 +27,38 @@ const ForgotPasswordScreen = () => {
       },
     };
     try {
+      console.log("calling forgot password ");
       const response = await axios.post(
         "/api/auth/forgotpassword",
         { email },
         config
       );
-      console.log(response);
+      console.log(
+        "Result after forgot password: ",
+        JSON.stringify(response.data)
+      );
+      setLoading(false);
       setSuccess("Reset Password Link sent to registered email address");
+      setTimeout(() => {
+        setError("");
+      }, duration);
     } catch (error) {
       setError(error.response.data.error || "Something went wrong!");
+      setTimeout(() => {
+        setError("");
+      }, duration);
     }
   };
 
   return (
     <Box display="flex" justifyContent="center" alignItems="center">
-      <Stack direction="column" margin={2} sx={{ width: "auto" }} spacing={2}>
+      <Stack
+        direction="column"
+        justifyContent={"center"}
+        margin={2}
+        sx={{ width: "auto" }}
+        spacing={2}
+      >
         {loading ? (
           <Loader />
         ) : error ? (
@@ -82,6 +99,8 @@ const ForgotPasswordScreen = () => {
             <TextField
               label="Email"
               variant="outlined"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               fullWidth
               sx={{ maxWidth: "300px", marginBottom: "10px" }}
             />
