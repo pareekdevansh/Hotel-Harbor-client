@@ -10,23 +10,23 @@ import dayjs from "dayjs";
 import { TextField } from "@mui/material";
 import RoomFilter from "../components/RoomFilter";
 import RoomSort from "../components/RoomSort";
-function Homescreen() {
-  const [loading, setloading] = useState(true);
-  const [error, seterror] = useState(false);
-  const [user, setuser] = useState(null);
+function HomeScreen() {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [user, setUser] = useState(null);
 
   //  all rooms data
-  const [rooms, setrooms] = useState([]);
-  // everytime date-range is changed or handle filter is called => change filteredRooms
+  const [rooms, setRooms] = useState([]);
+  // every-time date-range is changed or handle filter is called => change filteredRooms
   const [filteredRooms, setFilteredRooms] = useState([]);
 
-  // filter section will use maxcount , priceRange, tags props to update ui
+  // filter section will use maxCount , priceRange, tags props to update ui
   const [filterMaxCount, setFilterMaxCount] = useState(5);
   const [filterPriceRange, setFilterPriceRange] = useState([300, 800]);
   const [filterSelectedTags, setFilterSelectedTags] = useState([]);
 
   // handleFilter will always listen to these props
-  // these props should only change upon pressing apply fitlers or clear filters
+  // these props should only change upon pressing apply filters or clear filters
   const [onFilterMaxCount, setOnFilterMaxCount] = useState(5);
   const [onFilterPriceRange, setOnFilterPriceRange] = useState([300, 800]);
   const [onFilterSelectedTags, setOnFilterSelectedTags] = useState([]);
@@ -55,12 +55,12 @@ function Homescreen() {
   const dateFormat = "DD/MM/YYYY";
   const today = dayjs();
   //TODO: later change it to today.add(3 , "day");
-  const threedaylater = today.add(0, "day");
+  const threeDaysLater = today.add(0, "day");
   const [checkInDate, setCheckInDate] = useState(today);
-  const [checkOutDate, setCheckOutDate] = useState(threedaylater);
+  const [checkOutDate, setCheckOutDate] = useState(threeDaysLater);
 
   useEffect(() => {
-    getallrooms();
+    getAllRooms();
   }, []);
 
   // whenever check-in , check-out date changes according to applied filter, filter rooms on basis of date... need to take care of applied filter as well
@@ -89,19 +89,19 @@ function Homescreen() {
     }
   }, [query, onFilterMaxCount, onFilterPriceRange, onFilterSelectedTags]);
 
-  async function getallrooms() {
-    setloading(true);
+  async function getAllRooms() {
+    setLoading(true);
     try {
-      await setuser(JSON.parse(localStorage.getItem("currentUser")));
+      await setUser(JSON.parse(localStorage.getItem("currentUser")));
       const data = (await axios.get("/api/rooms/getallrooms")).data;
       console.log(data);
-      setrooms(data);
-      seterror(false);
-      setloading(false);
+      setRooms(data);
+      setError(false);
+      setLoading(false);
     } catch (error) {
-      setrooms([]);
-      seterror(true);
-      setloading(false);
+      setRooms([]);
+      setError(true);
+      setLoading(false);
       console.log(error);
     }
   }
@@ -134,13 +134,13 @@ function Homescreen() {
           query.length === 0 ||
           room.name.toLowerCase().includes(query.toLowerCase());
         if (!isQueryMatching) return false;
-        let isFilteresMatching =
+        let isFiltersMatching =
           room.maxCount <= onFilterMaxCount &&
           room.rentPerDay >= onFilterPriceRange[0] &&
           room.rentPerDay <= onFilterPriceRange[1] &&
           (onFilterSelectedTags.length === 0 ||
             onFilterSelectedTags.includes(room.roomType));
-        if (!isFilteresMatching) return false;
+        if (!isFiltersMatching) return false;
         for (const booking of room.currentBookings) {
           const isBefore = checkOutDate.isBefore(booking.checkInDate, "day");
           const isAfter = checkInDate.isAfter(booking.checkOutDate, "day");
@@ -237,8 +237,8 @@ function Homescreen() {
                 <div key={room._id} className="col m-4">
                   <Room
                     room={room}
-                    fromdate={checkInDate}
-                    todate={checkOutDate}
+                    fromDate={checkInDate}
+                    toDate={checkOutDate}
                   />
                 </div>
               ))}
@@ -249,4 +249,4 @@ function Homescreen() {
   );
 }
 
-export default Homescreen;
+export default HomeScreen;

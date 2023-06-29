@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Typography, Stack, Box, Card, CardContent } from "@mui/material";
 import axios from "axios";
-const mybookings = [
+const myBookings = [
   {
     id: 1,
     hotelName: "Hotel A",
@@ -61,7 +61,7 @@ function MyBookingsScreen() {
           <Typography variant="h4" gutterBottom align="left">
             My Bookings
           </Typography>
-          {mybookings.map((booking) => (
+          {myBookings.map((booking) => (
             <Card
               key={booking.id}
               variant="outlined"

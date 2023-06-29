@@ -6,26 +6,30 @@ import Error from "../components/Error";
 import dayjs from "dayjs";
 import Success from "../components/Success";
 import PaymentButton from "../components/PayButton";
-function Bookingscreen() {
-  const roomid = useParams().roomid;
-  const checkInDate = dayjs(useParams().fromdate);
-  const checkOutDate = dayjs(useParams().todate);
-  const [user, setuser] = useState(null);
-  const [room, setroom] = useState(null);
-  const [loading, setloading] = useState(true);
-  const [error, seterror] = useState("false");
+
+function BookingScreen() {
+  const roomId = useParams().roomId;
+  const checkInDate = dayjs(useParams().fromDate);
+  const checkOutDate = dayjs(useParams().toDate);
+  const [user, setUser] = useState(null);
+  const [room, setRoom] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [success, setSuccess] = useState(false);
   const [numberOfDays, setNumberOfDays] = useState(3);
   const [totalAmount, setTotalAmount] = useState(null);
+
   useEffect(() => {
-    getroom();
+    getRoom();
   }, []);
+
   useEffect(() => {
-    if (room != null) {
+    if (room !== null) {
       setNumberOfDays(checkOutDate.diff(checkInDate, "days") + 1);
       setTotalAmount(room.rentPerDay * numberOfDays);
     }
   }, [room]);
+
   useEffect(() => {
     if (success) {
       setTimeout(() => {
@@ -34,25 +38,25 @@ function Bookingscreen() {
     }
   }, [success]);
 
-  async function getroom() {
-    setloading(true);
-    seterror("false");
+  async function getRoom() {
+    setLoading(true);
+    setError(false);
     try {
       // Getting user data
-      setuser(JSON.parse(localStorage.getItem("currentUser")));
+      setUser(JSON.parse(localStorage.getItem("currentUser")));
       // Getting room details
-      const data = (await axios.post("/api/rooms/getroombyid/", { id: roomid }))
+      const data = (await axios.post("/api/rooms/getroombyid/", { id: roomId }))
         .data;
-      setroom(data);
-      setloading(false);
+      setRoom(data);
+      setLoading(false);
     } catch (error) {
-      seterror(`Something went wrong!!!`);
-      setloading(false);
+      setError("Something went wrong!!!");
+      setLoading(false);
     }
   }
 
   async function handleCheckoutEvent() {
-    setloading(true);
+    setLoading(true);
     const booking = {
       roomId: room?._id,
       roomName: room?.name,
@@ -61,21 +65,22 @@ function Bookingscreen() {
       totalAmount: totalAmount,
     };
     console.log(JSON.stringify(booking));
-    await axios
-      .post("/api/stripe/create-checkout-session/", booking)
-      .then((response) => {
-        console.log("session created!! ");
-        console.log(response);
-        if (response.data.url) {
-          console.log(`response data url is ${response.data.url}`);
-          setloading(false);
-          window.location.href = response.data.url;
-        }
-      })
-      .catch((error) => {
-        seterror(error);
-        setloading(false);
-      });
+    try {
+      const response = await axios.post(
+        "/api/stripe/create-checkout-session/",
+        booking
+      );
+      console.log("session created!!");
+      console.log(response);
+      if (response.data.url) {
+        console.log(`response data url is ${response.data.url}`);
+        setLoading(false);
+        window.location.href = response.data.url;
+      }
+    } catch (error) {
+      setError(error);
+      setLoading(false);
+    }
   }
 
   return (
@@ -83,7 +88,7 @@ function Bookingscreen() {
       <div className="col horizontal-center">
         {loading ? (
           <Loader />
-        ) : error != "false" ? (
+        ) : error ? (
           <Error errorMessage={error} />
         ) : (
           <div className="row mt-2 box-shadow">
@@ -132,4 +137,4 @@ function Bookingscreen() {
   );
 }
 
-export default Bookingscreen;
+export default BookingScreen;

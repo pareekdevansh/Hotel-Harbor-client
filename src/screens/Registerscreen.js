@@ -10,52 +10,73 @@ import InputAdornment from "@mui/material/InputAdornment";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import LockIcon from "@mui/icons-material/Lock";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import Loader from "../components/Loader";
-import Error from "../components/Error";
 import Success from "../components/Success";
-function Registerscreen() {
-  const [name, setname] = useState("");
-  const [email, setemail] = useState("");
-  const [password, setpassword] = useState("");
-  const [cpassword, setcpassword] = useState("");
-  const [loading, setloading] = useState(false);
-  const [success, setsuccess] = useState(false);
-  const [error, seterror] = useState("false");
-
+import Error from "../components/Error";
+function RegisterScreen() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
+  const duration = 3000;
   function makeFieldsEmpty() {
-    setname("");
-    setemail("");
-    setpassword("");
-    setcpassword("");
+    setName("");
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
   }
+
   function onNavigateToLoginRoute() {
-    window.location.href = "/login";
+    navigate("/login");
   }
+  // if already logged in, go to home screen
+  useEffect(() => {
+    if (localStorage.getItem("authToken")) {
+      navigate("/");
+    }
+  }, [navigate]);
+
   async function registerUser() {
-    seterror("false");
-    setloading(true);
-    if (password == cpassword) {
+    setLoading(true);
+    const config = {
+      header: {
+        "Content-Type": "application/json",
+      },
+    };
+    if (password === confirmPassword) {
       const user = {
         name,
         email,
         password,
-        cpassword,
-        isAdmin: false,
       };
       try {
-        const response = await axios.post("/api/users/register", user);
-        // setloading(false);
-        setsuccess(true);
+        console.log("user: ", user);
+        const { data } = await axios.post("/api/auth/register", user, config);
+        console.log(`response: ${JSON.stringify(data)}`);
+        setTimeout(() => {
+          setSuccess(data);
+        }, duration);
         makeFieldsEmpty();
-        console.log(response.data);
+        navigate("/login");
       } catch (error) {
-        // setloading(false);
-        seterror("Registration Failed.. Please Try again!");
+        setLoading(false);
+        setTimeout(() => {
+          setError(error);
+        }, duration);
+        setError("");
       }
     } else {
-      seterror("Please Confirm Password Again!!");
+      setLoading(false);
+      setTimeout(() => {
+        setError("Please Confirm Password Again!!");
+      }, duration);
+      setError("");
     }
-    setloading(false);
   }
 
   return (
@@ -65,13 +86,14 @@ function Registerscreen() {
         <Typography noWrap variant="h4">
           Register Screen
         </Typography>
-        {error != "false" && <Error errorMessage={error} />}
+        {error && <Error errorMessage={error} />}
+        {success && <Success message={"User Registration Successful!"} />}
         <Stack direction="column" marginTop={"30px"} spacing={1}>
           <TextField
             id="outlined-basic"
             label="Name"
             value={name}
-            onChange={(e) => setname(e.target.value)}
+            onChange={(e) => setName(e.target.value)}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -85,7 +107,7 @@ function Registerscreen() {
             id="outlined-basic"
             label="Email"
             value={email}
-            onChange={(e) => setemail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -100,7 +122,7 @@ function Registerscreen() {
             label="Password"
             type="password"
             value={password}
-            onChange={(e) => setpassword(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -114,8 +136,8 @@ function Registerscreen() {
             id="outlined-basic"
             label="Confirm Password"
             type="password"
-            value={cpassword}
-            onChange={(e) => setcpassword(e.target.value)}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -153,4 +175,4 @@ function Registerscreen() {
   );
 }
 
-export default Registerscreen;
+export default RegisterScreen;

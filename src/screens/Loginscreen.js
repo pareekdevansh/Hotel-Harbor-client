@@ -12,31 +12,58 @@ import Error from "../components/Error";
 import Success from "../components/Success";
 import InputAdornment from "@mui/material/InputAdornment";
 import axios from "axios";
-function Loginscreen() {
-  const [email, setemail] = useState("");
-  const [password, setpassword] = useState("");
-  const [loading, setloading] = useState(false);
-  const [success, setsuccess] = useState(false);
-  const [error, seterror] = useState("false");
+import { useNavigate } from "react-router-dom";
+import { duration } from "@mui/material";
+function LoginScreen() {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState();
+  const errorDuration = 3000;
+  const successDuration = 1000;
+
+  const navigateToRegisterScreen = () => {
+    navigate("/register ");
+  };
+  useEffect(() => {
+    if (localStorage.getItem("authToken")) {
+      navigate("/");
+    }
+  }, [navigate]);
   async function loginUser() {
-    setloading(true);
-    seterror("false");
+    setLoading(true);
+    setError("");
+    const config = {
+      header: {
+        "Content-Type": "application/json",
+      },
+    };
     const user = {
       email,
       password,
     };
     try {
-      const response = await axios.post("/api/users/login", user);
-      console.log(response.data);
-      setsuccess(true);
-      localStorage.setItem("currentUser", JSON.stringify(response.data));
-      setTimeout(() => {
-        window.location.href = "/home";
-      }, 500);
+      const { data } = await axios.post("/api/auth/login", user, config);
+      console.log("a fresh token received: ", data.token);
+      localStorage.setItem("authToken", data.token);
+      console.log(
+        "local Storage taken value : ",
+        localStorage.getItem("authToken")
+      );
+      setSuccess("Login Successful!");
+      setTimeout(() => {}, successDuration);
+      setSuccess("");
+      setLoading(false);
+      navigate("/");
     } catch (error) {
-      seterror("Login Failed.. Please Try again!!");
+      setLoading(false);
+      setTimeout(() => {
+        setError(error.response.data.error || "Something went wrong!");
+      }, errorDuration);
+      setError("");
     }
-    setloading(false);
   }
   return (
     <Box display="flex" justifyContent="center">
@@ -45,13 +72,15 @@ function Loginscreen() {
           Login Screen
         </Typography>
         {loading && <Loader />}
-        {error != "false" && <Error errorMessage={error} />}
+        {error && <Error errorMessage={error} />}
+        {success && <Success message={error} />}
+
         <Stack direction="column" marginTop={"30px"} spacing={1}>
           <TextField
             id="outlined-basic"
             label="Email"
             value={email}
-            onChange={(e) => setemail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -65,7 +94,7 @@ function Loginscreen() {
             id="outlined-basic"
             type="password"
             value={password}
-            onChange={(e) => setpassword(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -97,13 +126,11 @@ function Loginscreen() {
           <Typography variant="button" style={{ marginRight: "2px" }}>
             New User?
           </Typography>
-          <Button onClick={() => (window.location.href = "/register")}>
-            Register
-          </Button>
+          <Button onClick={navigateToRegisterScreen}>Register</Button>
         </Stack>
       </Stack>
     </Box>
   );
 }
 
-export default Loginscreen;
+export default LoginScreen;

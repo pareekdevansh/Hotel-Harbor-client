@@ -1,16 +1,19 @@
 import "./App.css";
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Homescreen from "./screens/Homescreen";
-import Bookingscreen from "./screens/Bookingscreen";
-import Registerscreen from "./screens/Registerscreen";
-import Loginscreen from "./screens/Loginscreen";
-import MenuAppBar from "./components/Appbar";
+import MenuAppBar from "./components/AppBar";
 import CheckoutSuccess from "./components/PaymentSuccess";
 import NotFound from "./components/NotFound";
-import Error from "./components/Error";
 import MyBookingsScreen from "./screens/MyBookingsScreen";
 import UserProfile from "./screens/ProfileScreen";
+import BookingScreen from "./screens/BookingScreen";
+import RegisterScreen from "./screens/RegisterScreen";
+import LoginScreen from "./screens/LoginScreen";
+import HomeScreen from "./screens/HomeScreen";
+import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
+import ResetPasswordScreen from "./screens/ResetPasswordScreen";
+import PrivateScreen from "./screens/PrivateScreen";
+import PrivateRoute from "./routing/PrivateRoute";
 
 function App() {
   return (
@@ -18,13 +21,20 @@ function App() {
       <MenuAppBar />
       <BrowserRouter>
         <Routes>
-          <Route path="/home" Component={Homescreen} />
+          {/* <PrivateRoute path="/" element={<PrivateScreen />} /> */}
+          <Route path="/" element={<PrivateScreen />} />
+          <Route path="/register" Component={RegisterScreen} />
+          <Route path="/login" Component={LoginScreen} />
+          <Route path="/forgotpassword" Component={ForgotPasswordScreen} />
           <Route
-            path="/book/:roomid/:fromdate/:todate"
-            Component={Bookingscreen}
+            path="/resetpassword/:resetToken"
+            Component={ResetPasswordScreen}
           />
-          <Route path="/register" Component={Registerscreen} />
-          <Route path="/login" Component={Loginscreen} />
+          <Route path="/home" Component={HomeScreen} />
+          <Route
+            path="/book/:roomId/:fromDate/:toDate"
+            Component={BookingScreen}
+          />
           <Route
             path="/checkout-success/:roomId/:checkInDate/:checkOutDate"
             Component={CheckoutSuccess}
