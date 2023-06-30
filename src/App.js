@@ -13,7 +13,7 @@ import HomeScreen from "./screens/HomeScreen";
 import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
 import ResetPasswordScreen from "./screens/ResetPasswordScreen";
 import PrivateScreen from "./screens/PrivateScreen";
-import PrivateRoute from "./routing/PrivateRoute";
+import AdminScreen from "./screens/AdminScreen";
 
 function App() {
   return (
@@ -21,7 +21,6 @@ function App() {
       <MenuAppBar />
       <BrowserRouter>
         <Routes>
-          {/* <PrivateRoute path="/" element={<PrivateScreen />} /> */}
           <Route path="/" element={<PrivateScreen />} />
           <Route path="/register" Component={RegisterScreen} />
           <Route path="/login" Component={LoginScreen} />
@@ -39,9 +38,10 @@ function App() {
             path="/checkout-success/:roomId/:checkInDate/:checkOutDate/:bookingId"
             Component={CheckoutSuccess}
           />
+          <Route path="/admin" Component={AdminScreen} />
           <Route path="/bookings" Component={MyBookingsScreen} />
-          <Route path="/notfound" Component={NotFound} />
           <Route path="/profile" Component={UserProfile} />
+          <Route path="*" Component={NotFound} />
         </Routes>
       </BrowserRouter>
     </div>

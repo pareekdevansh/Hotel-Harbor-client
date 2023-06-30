@@ -3,24 +3,30 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Error from "../components/Error";
 import Loader from "../components/Loader";
+import { Fade } from "@mui/material";
 function PrivateScreen() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const [privateDate, setPrivateData] = useState();
-  const errorDuration = 2000;
+  const [userDetails, setUserDetails] = useState(null );
+  const duration = 2000;
   const navigate = useNavigate();
+  const showError = (message, login) => {
+    setLoading(false);
+    setError(message);
+    setTimeout(() => {
+      setError("");
+      if (login) {
+        console.log("login related error  ");
+        localStorage.removeItem("authToken");
+        navigate("/login");
+      }
+    }, duration);
+  };
   useEffect(() => {
     setLoading(true);
     const authToken = localStorage.getItem("authToken");
-    console.log("Private Screen : token from local Storage: ", authToken);
     if (!authToken) {
-      setLoading(false);
-      setTimeout(() => {
-        console.log(`line 20 problem`);
-        setError("You are not logged in!");
-      }, errorDuration);
-      setError("");
-      // navigate("/login");
+      showError("Please Login First", true);
     }
     const fetchPrivateDate = async () => {
       const config = {
@@ -30,27 +36,18 @@ function PrivateScreen() {
         },
       };
       try {
-        console.log("before call to API.Private");
         const { data } = await axios.get("/api/private", config);
-        console.log("call to private API completed", JSON.stringify(data));
-        setPrivateData(data.data);
-        setLoading(false);
-        // navigate to home screen now
-        //TODO: use navigate
-        window.location.href = "/home";
-      } catch (error) {
-        console.log(
-          "PrivateScreen : removing the token from local Storage due to: ",
-          JSON.stringify(error)
-        );
-        // TODO: remote the token and goto login
-        // localStorage.removeItem("authToken");
-        setLoading(false);
+        setUserDetails(data.data);
         setTimeout(() => {
-          setError(error.response.data.error);
-        }, errorDuration);
-        setError("");
-        // navigate("/login");
+          // wait for 2 seconds
+        }, duration);
+        setLoading(false);
+        navigate("/home");
+      } catch (error) {
+        console.log("getUserPrivateDetails: error is : ", JSON.stringify(error));
+        let login =
+          error.response.data.error === "No User Found" || "Please Login First";
+        showError(error.response.data.error, login);
       }
     };
     fetchPrivateDate();
@@ -58,12 +55,16 @@ function PrivateScreen() {
 
   return (
     <div>
-      {loading ? (
-        <Loader />
-      ) : error ? (
+      {error ? (
         <Error errorMessage={error} />
       ) : (
-        <p>{privateDate}</p>
+        <Fade in={true}>
+          <div>
+            <Loader />
+            <h2>Welcome, {userDetails?.name}!</h2>
+            <p>Loading Rooms for you...</p>
+          </div>
+        </Fade>
       )}
     </div>
   );

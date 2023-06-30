@@ -28,6 +28,9 @@ export default function MenuAppBar() {
   const onNavigateToMyBookings = () => {
     window.location.href = "/bookings";
   };
+  const onNavigateToAdminPanel = () => {
+    window.location.href = "/admin";
+  };
   const onNavigateToUserProfile = () => {
     window.location.href = "/profile";
   };
@@ -45,7 +48,7 @@ export default function MenuAppBar() {
   }
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static" sx={{ backgroundColor: "black" }}>
+      <AppBar position="static">
         <Toolbar>
           <Typography
             variant="h6"
@@ -98,6 +101,9 @@ export default function MenuAppBar() {
                   <MenuItem onClick={onNavigateToUserProfile}>Profile</MenuItem>
                   <MenuItem onClick={onNavigateToMyBookings}>
                     My Bookings
+                  </MenuItem>
+                  <MenuItem onClick={onNavigateToAdminPanel}>
+                    Admin Panel
                   </MenuItem>
                   <MenuItem onClick={onLogOut}>Log Out</MenuItem>
                 </Menu>
