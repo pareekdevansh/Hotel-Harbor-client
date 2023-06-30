@@ -36,7 +36,7 @@ function App() {
             Component={BookingScreen}
           />
           <Route
-            path="/checkout-success/:roomId/:checkInDate/:checkOutDate"
+            path="/checkout-success/:roomId/:checkInDate/:checkOutDate/:bookingId"
             Component={CheckoutSuccess}
           />
           <Route path="/bookings" Component={MyBookingsScreen} />

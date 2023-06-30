@@ -47,10 +47,11 @@ function LoginScreen() {
       email,
       password,
     };
+    console.log("user entered fields before call : ", JSON.stringify(user));
     try {
       const { data } = await axios.post("/api/auth/login", user, config);
-      console.log("a fresh token received: ", data.token);
       localStorage.setItem("authToken", data.token);
+      console.log("a fresh token received: ", data.token);
       console.log(
         "local Storage taken value : ",
         localStorage.getItem("authToken")

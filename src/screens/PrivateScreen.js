@@ -20,7 +20,7 @@ function PrivateScreen() {
         setError("You are not logged in!");
       }, errorDuration);
       setError("");
-      navigate("/login");
+      // navigate("/login");
     }
     const fetchPrivateDate = async () => {
       const config = {
@@ -32,26 +32,25 @@ function PrivateScreen() {
       try {
         console.log("before call to API.Private");
         const { data } = await axios.get("/api/private", config);
+        console.log("call to private API completed", JSON.stringify(data));
         setPrivateData(data.data);
-        console.log(
-          "Private Screen : received private data: ",
-          JSON.stringify(data)
-        );
         setLoading(false);
         // navigate to home screen now
-        navigate("/home");
+        //TODO: use navigate
+        window.location.href = "/home";
       } catch (error) {
         console.log(
           "PrivateScreen : removing the token from local Storage due to: ",
-          error
+          JSON.stringify(error)
         );
-        localStorage.removeItem("authToken");
+        // TODO: remote the token and goto login
+        // localStorage.removeItem("authToken");
         setLoading(false);
         setTimeout(() => {
           setError(error.response.data.error);
         }, errorDuration);
         setError("");
-        navigate("/login");
+        // navigate("/login");
       }
     };
     fetchPrivateDate();

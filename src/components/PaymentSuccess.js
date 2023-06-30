@@ -1,37 +1,58 @@
 import React from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+
 import { useState, useEffect, useRef } from "react";
 import Loader from "./Loader";
+import Error from "./Error";
+import Success from "./Success";
 
 function CheckoutSuccess() {
+  const navigate = useNavigate();
   const [bookingSuccessful, setBookingSuccessful] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const { roomId, checkInDate, checkOutDate } = useParams();
+  const { roomId, checkInDate, checkOutDate, bookingId } = useParams();
+  // even in development mode , useEffect will be called once
   const bookingStarted = useRef(false);
+  const duration = 3000;
   // TODO: handle case :: when user will press back button after navigating to next screen
+
+  const showError = (message, login) => {
+    setLoading(false);
+    setError(message);
+    setTimeout(() => {
+      setError("");
+      if (login) {
+        localStorage.removeItem("authToken");
+        navigate("/login");
+      }
+    }, duration);
+  };
+
   useEffect(() => {
     async function bookRoom() {
       try {
-        const user = JSON.parse(localStorage.getItem("currentUser"));
-        console.log(JSON.stringify(user?._id));
-        const booking = {
-          roomId: roomId,
-          userId: user._id,
-          checkInDate: checkInDate,
-          checkOutDate: checkOutDate,
+        const authToken = localStorage.getItem("authToken");
+        if (!authToken) {
+          showError("Please Login First", true);
+        }
+        const config = {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
         };
-        console.log(JSON.stringify(booking));
-        const response = (await axios.post("/api/bookings/bookroom", booking))
-          .data;
+        console.log("bookingId is ", JSON.stringify(bookingId));
+        const response = (
+          await axios.put("/api/bookings/bookroom", { bookingId }, config)
+        ).data;
         console.log(response);
         setBookingSuccessful(true);
-        setLoading(false);
       } catch (error) {
-        console.log(error);
-        setError(true);
-        setLoading(false);
+        // let login =
+        //   error.response.data.error === "No User Found" || "Please Login First";
+        showError(error.response.data.error, false);
       }
     }
     if (!bookingStarted.current) {
@@ -51,32 +72,35 @@ function CheckoutSuccess() {
 
   useEffect(() => {
     if (bookingSuccessful) {
-      setLoading(true);
-      // TODO: showSuccessPrompt();
-      setTimeout(() => {}, 1000);
-      window.location.href = "/bookings";
+      setLoading(false);
+      setTimeout(() => {}, duration);
+      setBookingSuccessful(false);
+      navigate("/bookings");
     }
   }, [bookingSuccessful]);
-  async function bookRoom() {
-    try {
-      const user = await JSON.parse(localStorage.getItem("currentUser"));
-      console.log(JSON.stringify(user?._id));
-      const booking = {
-        roomId: roomId,
-        userId: user._id,
-        checkInDate: checkInDate,
-        checkOutDate: checkOutDate,
-      };
-      console.log(JSON.stringify(booking));
-      const response = await axios.post("/api/bookings/bookroom", booking);
-      console.log(response);
-    } catch (error) {
-      throw error;
-    }
-  }
+
+  // async function bookRoom() {
+  //   try {
+  //     const user = await JSON.parse(localStorage.getItem("currentUser"));
+  //     console.log(JSON.stringify(user?._id));
+  //     const booking = {
+  //       roomId: roomId,
+  //       userId: user._id,
+  //       checkInDate: checkInDate,
+  //       checkOutDate: checkOutDate,
+  //     };
+  //     console.log(JSON.stringify(booking));
+  //     const response = await axios.post("/api/bookings/bookroom", booking);
+  //     console.log(response);
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }
   return (
     <div>
       {loading && <Loader />}
+      {error && <Error errorMessage={error} />}
+      {bookingSuccessful && <Success message={"Booking Successful!"} />}
       <h1>Payment Successful... Booking Your Room </h1>
     </div>
   );

@@ -1,14 +1,18 @@
 import React from "react";
 import { useState } from "react";
 import { Modal, Carousel, Card } from "react-bootstrap";
-import { Link } from "react-router-dom";
-import { Box, Button, CardContent } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import { Button, CardContent } from "@mui/material";
 
-function Room({ room, fromdate, todate }) {
+function Room({ room, fromDate, toDate }) {
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
-
+  const navigate = useNavigate();
+  const navigateToBookingScreen = () => {
+    console.log(fromDate, " ", toDate);
+    navigate(`/book/${room._id}/${fromDate}/${toDate}`);
+  };
   return (
     <div>
       <Card sx={{ minWidth: 400 }}>
@@ -28,15 +32,16 @@ function Room({ room, fromdate, todate }) {
               <p>Rent Per Day: {room.rentPerDay} INR</p>
 
               <div style={{ float: "right" }}>
-                <Link to={`/book/${room._id}/${fromdate}/${todate}`}>
-                  <Button
-                    variant="contained"
-                    className="ml-auto"
-                    style={{ marginRight: "10px" }}
-                  >
-                    Book
-                  </Button>
-                </Link>
+                {/* <Link to={`/book/${room._id}/${fromdate}/${todate}`}> */}
+                <Button
+                  variant="contained"
+                  className="ml-auto"
+                  style={{ marginRight: "10px" }}
+                  onClick={navigateToBookingScreen}
+                >
+                  Book
+                </Button>
+                {/* </Link> */}
                 <Button
                   variant="contained"
                   className="ml-auto"
@@ -67,19 +72,18 @@ function Room({ room, fromdate, todate }) {
           <p>{room.description}</p>
         </Modal.Body>
         <Modal.Footer>
-          <Button 
+          <Button
             variant="contained"
             onClick={handleClose}
             style={{ marginRight: "10px" }}
           >
             Close
           </Button>
-          <Link to={`/book/${room._id}/${fromdate}/${todate}`}>
-          <Button
-            variant="contained" onClick={handleClose}>
+          {/* <Link to={`/book/${room._id}/${fromdate}/${todate}`}> */}
+          <Button variant="contained" onClick={navigateToBookingScreen}>
             Book
           </Button>
-        </Link>
+          {/* </Link> */}
         </Modal.Footer>
       </Modal>
     </div>

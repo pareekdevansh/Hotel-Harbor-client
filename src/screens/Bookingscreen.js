@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Loader from "../components/Loader";
 import Error from "../components/Error";
@@ -8,55 +8,62 @@ import Success from "../components/Success";
 import PaymentButton from "../components/PayButton";
 
 function BookingScreen() {
+  const navigate = useNavigate();
   const roomId = useParams().roomId;
   const checkInDate = dayjs(useParams().fromDate);
   const checkOutDate = dayjs(useParams().toDate);
-  const [user, setUser] = useState(null);
   const [room, setRoom] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [numberOfDays, setNumberOfDays] = useState(3);
   const [totalAmount, setTotalAmount] = useState(null);
+  const duration = 3000;
 
   useEffect(() => {
     getRoom();
   }, []);
 
   useEffect(() => {
-    if (room !== null) {
+    if (room) {
       setNumberOfDays(checkOutDate.diff(checkInDate, "days") + 1);
       setTotalAmount(room.rentPerDay * numberOfDays);
     }
-  }, [room]);
+  }, [room, checkInDate, checkOutDate]);
 
-  useEffect(() => {
-    if (success) {
-      setTimeout(() => {
-        setSuccess(false);
-      }, 1000);
-    }
-  }, [success]);
-
+  // show error for $duration
+  // clear authToken & navigate to login if it's a login error
+  const showError = (message, login) => {
+    setLoading(false);
+    setError(message);
+    setTimeout(() => {
+      setError("");
+      if (login) {
+        localStorage.removeItem("authToken");
+        navigate("/login");
+      }
+    }, duration);
+  };
   async function getRoom() {
     setLoading(true);
-    setError(false);
+    setError("");
     try {
-      // Getting user data
-      setUser(JSON.parse(localStorage.getItem("currentUser")));
       // Getting room details
       const data = (await axios.post("/api/rooms/getroombyid/", { id: roomId }))
         .data;
       setRoom(data);
       setLoading(false);
     } catch (error) {
-      setError("Something went wrong!!!");
-      setLoading(false);
+      showError("something went wrong!!", false);
     }
   }
 
   async function handleCheckoutEvent() {
     setLoading(true);
+    const authToken = localStorage.getItem("authToken");
+    if (!authToken) {
+      showError("Please Login First", true);
+    }
     const booking = {
       roomId: room?._id,
       roomName: room?.name,
@@ -64,22 +71,32 @@ function BookingScreen() {
       checkOutDate: checkOutDate,
       totalAmount: totalAmount,
     };
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+      },
+    };
+    console.log(JSON.stringify(config));
     console.log(JSON.stringify(booking));
     try {
       const response = await axios.post(
         "/api/stripe/create-checkout-session/",
-        booking
+        booking,
+        config
       );
       console.log("session created!!");
       console.log(response);
       if (response.data.url) {
-        console.log(`response data url is ${response.data.url}`);
         setLoading(false);
+        // navigate(response.data.url);
         window.location.href = response.data.url;
       }
     } catch (error) {
-      setError(error);
-      setLoading(false);
+      let login =
+        error.response.data.error === "Please Login First" ||
+        error.response.data.error === "No User Found";
+      showError(error.response.data.error, login);
     }
   }
 
@@ -111,7 +128,7 @@ function BookingScreen() {
               <div>
                 <b>Booking Details</b>
                 <hr />
-                <p>Name: {user?.name}</p>
+                {/* <p>Name: {user?.name}</p> */}
                 <p>From date: {checkInDate.format("DD/MM/YYYY")}</p>
                 <p>To date: {checkOutDate.format("DD/MM/YYYY")}</p>
                 <p>Max Capacity: {room?.maxCount}</p>

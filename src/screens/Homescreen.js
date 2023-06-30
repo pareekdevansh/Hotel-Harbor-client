@@ -13,7 +13,6 @@ import RoomSort from "../components/RoomSort";
 function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [user, setUser] = useState(null);
 
   //  all rooms data
   const [rooms, setRooms] = useState([]);
@@ -47,7 +46,6 @@ function HomeScreen() {
   };
 
   const onTextChange = (event) => {
-    // console.log(JSON.stringify(event));
     setQuery(event.target.value);
   };
 
@@ -92,7 +90,6 @@ function HomeScreen() {
   async function getAllRooms() {
     setLoading(true);
     try {
-      await setUser(JSON.parse(localStorage.getItem("currentUser")));
       const data = (await axios.get("/api/rooms/getallrooms")).data;
       console.log(data);
       setRooms(data);
@@ -236,7 +233,7 @@ function HomeScreen() {
               filteredRooms.map((room) => (
                 <div key={room._id} className="col m-4">
                   <Room
-                    room={room}
+                    room ={room}
                     fromDate={checkInDate}
                     toDate={checkOutDate}
                   />
