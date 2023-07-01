@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Button,
   Dialog,
@@ -13,48 +13,78 @@ import {
   TableRow,
   Checkbox,
   IconButton,
+  Slider,
+  Switch,
+  FormControl,
+  FormControlLabel,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import axios from "axios";
+import axios, { isCancel } from "axios";
 import Loader from "../Loader";
 import Error from "../Error";
+import { styled } from "@mui/system";
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import dayjs from "dayjs";
 
 const UsersTab = () => {
+  const TableContainer = styled("div")({
+    overflowX: "auto",
+  });
   const [users, setUsers] = useState([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const errorDuration = 3000;
+
+  // dialog State
   const [open, setOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+
+  //to refresh user's list
   const [formData, setFormData] = useState({
     name: "",
-    description: "",
+    email: "",
+    password: "",
+    isAdmin: false,
   });
 
-  const [isChecked, setIsChecked] = useState(false);
+  // track of admin state
+  const [isAdminSelected, setIsAdminSelected] = useState(false);
 
-  const handleToggle = () => {
-    setIsChecked(!isChecked);
+  const handleAdminSwitch = () => {
+    const state = !formData.isAdmin;
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      isAdmin: state,
+    }));
+    console.log("formdata : ", formData);
   };
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      console.log("calling user endpoint");
+      const response = (await axios.get("/api/admin/users")).data;
 
+      setUsers(response);
+      console.log("Response[] : ", response);
+    } catch (error) {
+      setError(error.message);
+      console.log(error.message);
+    }
+    setLoading(false);
+  };
   useEffect(() => {
-    // Fetch users data from the server
-    const getAllUsers = async () => {
-      setLoading(true);
-      try {
-        console.log("calling user endpoint ");
-        const response = await axios.get("/api/admin/users");
-        console.log("users[] : ", response.data);
-        setUsers(response.data);
-        setLoading(false);
-      } catch (error) {
-        setLoading(false);
-        setError(error.message);
-        console.log(error.message);
-      }
+    let isCancelled = false;
+    if (!isCancelled) {
+      console.log("not cancelled");
+      fetchData();
+    } else {
+      console.log("cancelled");
+    }
+    return () => {
+      isCancelled = true;
     };
-    getAllUsers();
   }, []);
 
   const handleOpenDialog = (user) => {
@@ -62,13 +92,16 @@ const UsersTab = () => {
       setSelectedUser(user);
       setFormData({
         name: user.name,
-        description: user.description,
+        email: user.email,
+        isAdmin: user.isAdmin,
       });
     } else {
       setSelectedUser(null);
       setFormData({
         name: "",
-        description: "",
+        email: "",
+        password: "",
+        isAdmin: false,
       });
     }
     setOpen(true);
@@ -86,20 +119,34 @@ const UsersTab = () => {
       console.log("delete user response: ", deleteUser.data);
       const updatedUsersList = await users.filter((user) => user.id !== userId);
       setUsers(updatedUsersList);
+      fetchData();
     } catch (error) {
       setLoading(false);
       setError(error.response.data.error);
     }
   };
-
-  const handleSave = () => {
+  const isFormDataEmpty = () => {
+    // if admin is false=> by default client user will be created
+    return !formData.name || !formData.email;
+  };
+  const handleSave = async () => {
+    console.log("data forms: ", formData);
+    if (isFormDataEmpty() && (selectedUser || !formData.password)) {
+      setError("Pleas Fill User Data First!!");
+      return;
+    }
     setLoading(true);
     // Save or update user data on the server
     try {
       if (selectedUser) {
-        const newUser = axios.put(
+        const userData = {
+          name: formData.name,
+          email: formData.email,
+          isAdmin: formData.isAdmin,
+        };
+        const newUser = await axios.put(
           `/api/admin/users/${selectedUser._id}`,
-          formData
+          userData
         );
         console.log("newUser: ", newUser.data);
         const updatedUsersList = users.map((user) => {
@@ -111,26 +158,35 @@ const UsersTab = () => {
         });
         setUsers(updatedUsersList);
       } else {
-        const newUser = axios.post("/api/admin/users", formData);
+        const userData = {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          isAdmin: formData.isAdmin,
+        };
+        const newUser = await axios.post("/api/admin/users", userData);
         console.log("newUser: ", newUser.data);
         const updatedUsersList = [...users, newUser.data];
         setUsers(updatedUsersList);
       }
-      setLoading(false);
+      fetchData();
     } catch (error) {
       console.log(error.response.data.error);
       setLoading(false);
-      setError(error.response.data.error);
+      setError(error.message);
     }
-
     handleCloseDialog();
   };
 
-  const handleFormChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+  const handleFormChange = (event) => {
+    const { name, value } = event.target;
+    console.log("Selected name: ", name);
+    console.log("Selected value: ", value);
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      [name]: value,
+    }));
+    console.log("Updated formData: ", formData);
   };
 
   return (
@@ -160,7 +216,9 @@ const UsersTab = () => {
                 <TableCell>ID</TableCell>
                 <TableCell>Name</TableCell>
                 <TableCell>Email</TableCell>
-                <TableCell>Action</TableCell>
+                <TableCell>Created At</TableCell>
+                <TableCell>Updated At</TableCell>
+                <TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -172,16 +230,24 @@ const UsersTab = () => {
                     <TableCell>{user.name}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>
-                      <Checkbox
-                        checked={isChecked}
-                        onChange={handleToggle}
-                        icon={<span className="empty-icon">□</span>}
-                        checkedIcon={<span className="tick-icon">✓</span>}
-                      />
+                      {dayjs(user.createdAt).format("DD/MM/YYYY hh:mm A")}
+                    </TableCell>
+                    <TableCell>
+                      {dayjs(user.updatedAt).format("DD/MM/YYYY hh:mm A")}
+                    </TableCell>
+                    <TableCell>
+                      <IconButton
+                        aria-label="status"
+                        onClick={handleAdminSwitch}
+                      >
+                        <AdminPanelSettingsIcon
+                          sx={{ color: user.isAdmin ? "blue" : "grey" }}
+                        />
+                      </IconButton>
                       <IconButton onClick={() => handleOpenDialog(user)}>
                         <EditIcon />
                       </IconButton>
-                      <IconButton onClick={() => handleDelete(user.id)}>
+                      <IconButton onClick={() => handleDelete(user._id)}>
                         <DeleteIcon />
                       </IconButton>
                     </TableCell>
@@ -194,12 +260,12 @@ const UsersTab = () => {
               )}
             </TableBody>
           </Table>
+          <TableContainer></TableContainer>
         </>
       )}
 
-      {/* User Dialog */}
       <Dialog open={open} onClose={handleCloseDialog}>
-        <DialogTitle>{selectedUser ? "Edit User" : "Add User"}</DialogTitle>
+        <DialogTitle>{(selectedUser ? "Edit" : "Add") + " User"}</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
@@ -212,12 +278,34 @@ const UsersTab = () => {
           />
           <TextField
             margin="dense"
-            name="description"
-            label="Description"
+            name="email"
+            label="Email"
             fullWidth
-            value={formData.description}
+            value={formData.email}
             onChange={handleFormChange}
           />
+          {!selectedUser && (
+            <TextField
+              margin="dense"
+              name="password"
+              label="Password"
+              fullWidth
+              value={formData.password}
+              onChange={handleFormChange}
+            />
+          )}
+          <FormControl>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={formData.isAdmin}
+                  onChange={handleAdminSwitch}
+                  color="primary"
+                />
+              }
+              label="Admin Access"
+            />
+          </FormControl>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>

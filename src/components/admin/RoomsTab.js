@@ -12,6 +12,7 @@ import {
   TableHead,
   TableRow,
   IconButton,
+  styled,
 } from "@mui/material";
 import axios from "axios";
 import Loader from "../Loader";
@@ -20,54 +21,78 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 
 const RoomsTab = () => {
+  const TableContainer = styled("div")({
+    overflowX: "auto",
+  });
+
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const errorDuration = 3000;
   const [open, setOpen] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState(null);
+  // name , maxCount , phoneNumber , email , rentPerDay, roomType , description
+
   const [formData, setFormData] = useState({
     name: "",
+    maxCount: "",
+    phoneNumber: "",
+    email: "",
+    rentPerDay: "",
+    roomType: "",
     description: "",
   });
-
+  const getAllRooms = async () => {
+    setLoading(true);
+    try {
+      console.log("calling room endpoint ");
+      const response = (await axios.get("/api/admin/rooms/")).data;
+      console.log("rooms[] : ", response);
+      setRooms(response);
+    } catch (error) {
+      setError(error.message);
+      console.log(error.message);
+    }
+    setLoading(false);
+  };
   useEffect(() => {
-    // Fetch rooms data from the server
-    const getAllRooms = async () => {
-      setLoading(true);
-      try {
-        console.log("calling room endpoint ");
-        const response = await axios.get("/api/admin/rooms/");
-        console.log("rooms[] : ", rooms);
-        setRooms(response.data);
-        setLoading(false);
-      } catch (error) {
-        setLoading(false);
-        setError(error.message);
-        console.log(error.message);
-      }
-    };
     getAllRooms();
   }, []);
-
+  const fillFormData = (room) => {
+    setFormData({
+      name: room.name,
+      maxCount: room.maxCount,
+      phoneNumber: room.phoneNumber,
+      email: room.email,
+      rentPerDay: room.rentPerDay,
+      roomType: room.roomType,
+      description: room.description,
+    });
+  };
+  const clearFormData = () => {
+    setFormData({
+      name: "",
+      maxCount: "",
+      phoneNumber: "",
+      email: "",
+      rentPerDay: "",
+      roomType: "",
+      description: "",
+    });
+  };
   const handleOpenDialog = (room) => {
     if (room) {
       setSelectedRoom(room);
-      setFormData({
-        name: room.name,
-        description: room.description,
-      });
+      fillFormData(room);
     } else {
       setSelectedRoom(null);
-      setFormData({
-        name: "",
-        description: "",
-      });
+      clearFormData();
     }
     setOpen(true);
   };
 
   const handleCloseDialog = () => {
+    clearFormData();
     setOpen(false);
   };
 
@@ -77,39 +102,37 @@ const RoomsTab = () => {
     try {
       const deleteRoom = await axios.delete(`/api/admin/rooms/${roomId}`);
       console.log("delete room response: ", deleteRoom.data);
-      const updatedRoomsList = await rooms.filter((room) => room.id !== roomId);
-      setRooms(updatedRoomsList);
+      getAllRooms();
     } catch (error) {
       setLoading(false);
       setError(error.response.data.error);
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setLoading(true);
     // Save or update room data on the server
     try {
+      const roomData = {
+        name: formData.name,
+        maxCount: formData.maxCount,
+        phoneNumber: formData.phoneNumber,
+        email: formData.email,
+        rentPerDay: formData.rentPerDay,
+        roomType: formData.roomType,
+        description: formData.description,
+      };
       if (selectedRoom) {
-        const newRoom = axios.put(
+        const newRoom = await axios.put(
           `/api/admin/rooms/${selectedRoom._id}`,
-          formData
+          roomData
         );
         console.log("newRoom: ", newRoom.data);
-        const updatedRoomsList = rooms.map((room) => {
-          if (room._id === selectedRoom._id) {
-            return newRoom.data;
-          } else {
-            return room;
-          }
-        });
-        setRooms(updatedRoomsList);
       } else {
-        const newRoom = axios.post("/api/admin/rooms", formData);
+        const newRoom = await axios.post("/api/admin/rooms", roomData);
         console.log("newRoom: ", newRoom.data);
-        const updatedRoomsList = [...rooms, newRoom.data];
-        setRooms(updatedRoomsList);
       }
-      setLoading(false);
+      getAllRooms();
     } catch (error) {
       console.log(error.response.data.error);
       setLoading(false);
@@ -149,11 +172,14 @@ const RoomsTab = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell> Sr No.</TableCell>
+                <TableCell>Sr No.</TableCell>
                 <TableCell>ID</TableCell>
-                <TableCell>RoomName</TableCell>
-                <TableCell>Max Count </TableCell>
+                <TableCell>Name</TableCell>
+                <TableCell>Capacity</TableCell>
+                <TableCell>Phone Number </TableCell>
+                <TableCell>Email </TableCell>
                 <TableCell>Rent</TableCell>
+                <TableCell>Room Type </TableCell>
                 <TableCell>Action</TableCell>
               </TableRow>
             </TableHead>
@@ -165,7 +191,10 @@ const RoomsTab = () => {
                     <TableCell>{room._id}</TableCell>
                     <TableCell>{room.name}</TableCell>
                     <TableCell>{room.maxCount}</TableCell>
+                    <TableCell>{room.phoneNumber}</TableCell>
+                    <TableCell>{room.email}</TableCell>
                     <TableCell>{room.rentPerDay}</TableCell>
+                    <TableCell>{room.roomType}</TableCell>
 
                     <TableCell>
                       <IconButton
@@ -177,7 +206,7 @@ const RoomsTab = () => {
 
                       <IconButton
                         variant="outlined"
-                        onClick={() => handleDelete(room.id)}
+                        onClick={() => handleDelete(room._id)}
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -189,9 +218,8 @@ const RoomsTab = () => {
         </>
       )}
 
-      {/* Room Dialog */}
       <Dialog open={open} onClose={handleCloseDialog}>
-        <DialogTitle>{selectedRoom ? "Edit Room" : "Add Room"}</DialogTitle>
+        <DialogTitle>{(selectedRoom ? "Edit" : "Add") + " Room"}</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
@@ -203,9 +231,57 @@ const RoomsTab = () => {
             onChange={handleFormChange}
           />
           <TextField
+            autoFocus
+            margin="dense"
+            name="maxCount"
+            label="Capacity"
+            fullWidth
+            value={formData.maxCount}
+            onChange={handleFormChange}
+          />
+          <TextField
+            autoFocus
+            margin="dense"
+            name="phoneNumber"
+            label="Phone No."
+            fullWidth
+            value={formData.phoneNumber}
+            onChange={handleFormChange}
+          />
+          <TextField
+            autoFocus
+            margin="dense"
+            name="email"
+            label="Email"
+            fullWidth
+            value={formData.email}
+            onChange={handleFormChange}
+          />
+          <TextField
+            autoFocus
+            margin="dense"
+            name="rentPerDay"
+            label="Rent Per Day"
+            fullWidth
+            value={formData.rentPerDay}
+            onChange={handleFormChange}
+          />
+          <TextField
+            autoFocus
+            margin="dense"
+            name="roomType"
+            label="Room Type"
+            fullWidth
+            value={formData.roomType}
+            onChange={handleFormChange}
+          />
+          <TextField
+            autoFocus
             margin="dense"
             name="description"
             label="Description"
+            multiline
+            rows={3}
             fullWidth
             value={formData.description}
             onChange={handleFormChange}

@@ -73,17 +73,13 @@ const BookingsTab = () => {
         const response = await axios.get("/api/admin/bookings");
         console.log("bookings[] : ", bookings);
         setBookings(response.data);
-        setLoading(false);
       } catch (error) {
         setLoading(false);
         setError(error.message);
         console.log(error.message);
       }
+      setLoading(false);
     };
-    getAllBookings();
-  }, []);
-
-  useEffect(() => {
     const getRoomIdsList = async () => {
       setLoading(true);
       try {
@@ -106,9 +102,10 @@ const BookingsTab = () => {
       }
       setLoading(false);
     };
+    getAllBookings();
     getRoomIdsList();
     getUserIdsList();
-  }, [bookings]);
+  }, []);
 
   const handleOpenDialog = (booking) => {
     if (booking) {
@@ -167,7 +164,7 @@ const BookingsTab = () => {
   const handleSave = async () => {
     console.log("data forms: ", formData);
     if (isFormDataEmpty() && (selectedBooking || !formData.roomName)) {
-      setError("Pleas Fill Data First!!");
+      setError("Pleas Fill Booking Data First!!");
       return;
     }
     setLoading(true);
