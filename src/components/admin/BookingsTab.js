@@ -12,6 +12,11 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  Autocomplete,
+  Box,
+  Stack,
+  FormControlLabel,
+  Checkbox,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -20,18 +25,45 @@ import Loader from "../Loader";
 import Error from "../Error";
 import dayjs from "dayjs";
 
+import { styled } from "@mui/system";
+import { DatePicker } from "@mui/x-date-pickers";
+import BasicDatePicker from "../Datepicker";
+
 const BookingsTab = () => {
+  const TableContainer = styled("div")({
+    overflowX: "auto",
+  });
+
+  // list of bookings
   const [bookings, setBookings] = useState([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const errorDuration = 3000;
+
+  // dialog state
   const [open, setOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const bookingStatusOptions = ["Booked", "Pending", "Cancelled"];
+  const [roomIds, setRoomIds] = useState([]);
+  const [userIds, setUserIds] = useState([]);
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
+    roomId: "",
+    roomName: "",
+    userId: "",
+    checkInDate: "",
+    checkOutDate: "",
+    status: "",
   });
+  const handleDateChange = (date) => {
+    const [checkInDate, checkOutDate] = date;
 
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      checkInDate: checkInDate,
+      checkOutDate: checkOutDate,
+    }));
+  };
   useEffect(() => {
     // Fetch bookings data from the server
     const getAllBookings = async () => {
@@ -51,18 +83,52 @@ const BookingsTab = () => {
     getAllBookings();
   }, []);
 
+  useEffect(() => {
+    const getRoomIdsList = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get("/api/admin/rooms");
+        const roomIdsList = await response.data.map((room) => room._id);
+        setRoomIds(roomIdsList);
+      } catch (error) {
+        setError(error.message);
+      }
+      setLoading(false);
+    };
+    const getUserIdsList = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get("/api/admin/users");
+        const userIdsList = await response.data.map((user) => user._id);
+        setUserIds(userIdsList);
+      } catch (error) {
+        setError(error.message);
+      }
+      setLoading(false);
+    };
+    getRoomIdsList();
+    getUserIdsList();
+  }, [bookings]);
+
   const handleOpenDialog = (booking) => {
     if (booking) {
       setSelectedBooking(booking);
       setFormData({
-        name: booking.name,
-        description: booking.description,
+        roomId: booking.roomId,
+        userId: booking.userId,
+        checkInDate: booking.checkInDate,
+        checkOutDate: booking.checkOutDate,
+        status: booking.status,
       });
     } else {
       setSelectedBooking(null);
       setFormData({
-        name: "",
-        description: "",
+        roomId: "",
+        roomName: "",
+        userId: "",
+        checkInDate: "",
+        checkOutDate: "",
+        status: "",
       });
     }
     setOpen(true);
@@ -89,46 +155,76 @@ const BookingsTab = () => {
       setError(error.response.data.error);
     }
   };
-
-  const handleSave = () => {
+  const isFormDataEmpty = () => {
+    return (
+      !formData.roomId ||
+      !formData.userId ||
+      !formData.checkInDate ||
+      !formData.checkOutDate ||
+      !formData.status
+    );
+  };
+  const handleSave = async () => {
+    console.log("data forms: ", formData);
+    if (isFormDataEmpty() && (selectedBooking || !formData.roomName)) {
+      setError("Pleas Fill Data First!!");
+      return;
+    }
     setLoading(true);
+    console.log("handleSave function: ", selectedBooking);
     // Save or update booking data on the server
     try {
       if (selectedBooking) {
-        const newBooking = axios.put(
+        const booking = {
+          roomId: formData.roomId,
+          userId: formData.userId,
+          checkInDate: formData.checkInDate,
+          checkOutDate: formData.checkOutDate,
+          status: formData.status,
+        };
+        const updatedBooking = await axios.put(
           `/api/admin/bookings/${selectedBooking._id}`,
-          formData
+          booking
         );
-        console.log("newBooking: ", newBooking.data);
-        const updatedBookingsList = bookings.map((booking) => {
-          if (booking._id === selectedBooking._id) {
-            return newBooking.data;
-          } else {
-            return booking;
-          }
-        });
+        console.log("Updated booking:", updatedBooking.data);
+        const updatedBookingsList = bookings.map((booking) =>
+          booking._id === selectedBooking._id ? updatedBooking.data : booking
+        );
         setBookings(updatedBookingsList);
       } else {
-        const newBooking = axios.post("/api/admin/bookings", formData);
-        console.log("newBooking: ", newBooking.data);
+        const booking = {
+          roomId: formData.roomId,
+          roomName: formData.roomName,
+          userId: formData.userId,
+          checkInDate: formData.checkInDate,
+          checkOutDate: formData.checkOutDate,
+          status: formData.status,
+        };
+        console.log("call to new booking function");
+        const newBooking = await axios.post("/api/admin/bookings", booking);
+        console.log("New booking:", newBooking.data);
         const updatedBookingsList = [...bookings, newBooking.data];
         setBookings(updatedBookingsList);
       }
       setLoading(false);
     } catch (error) {
-      console.log(error.response.data.error);
+      console.error("Error saving booking: ", error);
       setLoading(false);
-      setError(error.response.data.error);
+      setError(error.message);
     }
 
     handleCloseDialog();
   };
 
-  const handleFormChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+  const handleFormChange = (event) => {
+    const { name, value } = event.target;
+    console.log("Selected name: ", name);
+    console.log("Selected value: ", value);
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      [name]: value,
+    }));
+    console.log("Updated formData: ", formData);
   };
 
   return (
@@ -151,75 +247,135 @@ const BookingsTab = () => {
           >
             Add Booking
           </Button>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Sr No.</TableCell>
-                <TableCell>ID</TableCell>
-                <TableCell>RoomName</TableCell>
-                <TableCell>RoomId</TableCell>
-                <TableCell>UserId</TableCell>
-                <TableCell>CheckInDate</TableCell>
-                <TableCell>CheckOutDate</TableCell>
-                <TableCell>Booking Time</TableCell>
-                <TableCell>Action</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {bookings.length &&
-                bookings.map((booking, index) => (
-                  <TableRow key={booking._id}>
-                    <TableCell>{index + 1}.</TableCell>
-                    <TableCell>{booking._id}</TableCell>
-                    <TableCell>{booking.roomName}</TableCell>
-                    <TableCell>{booking.roomId}</TableCell>
-                    <TableCell>{booking.userId}</TableCell>
-                    <TableCell>
-                      {dayjs(booking.checkInDate).format("DD/MM/YYYY")}
-                    </TableCell>
-                    <TableCell>
-                      {dayjs(booking.checkOutDate).format("DD/MM/YYYY")}
-                    </TableCell>
-                    <TableCell>
-                      {dayjs(booking.createdAt).format("DD/MM/YYYY hh:mm A")}
-                    </TableCell>
-                    <TableCell>
-                      <IconButton onClick={() => handleOpenDialog(booking)}>
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton onClick={() => handleDelete(booking.id)}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-            </TableBody>
-          </Table>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Sr No.</TableCell>
+                  <TableCell>Booking Id</TableCell>
+                  <TableCell>Room Id</TableCell>
+                  <TableCell>RoomName</TableCell>
+                  <TableCell>UserId</TableCell>
+                  <TableCell>CheckInDate</TableCell>
+                  <TableCell>CheckOutDate</TableCell>
+                  <TableCell>Booking Time</TableCell>
+                  <TableCell>Action</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {bookings.length &&
+                  bookings.map((booking, index) => (
+                    <TableRow key={booking._id}>
+                      <TableCell>{index + 1}.</TableCell>
+                      <TableCell>{booking._id}</TableCell>
+                      <TableCell>{booking.roomId}</TableCell>
+                      <TableCell>{booking.roomName}</TableCell>
+                      <TableCell>{booking.userId}</TableCell>
+                      <TableCell>
+                        {dayjs(booking.checkInDate).format("DD/MM/YYYY")}
+                      </TableCell>
+                      <TableCell>
+                        {dayjs(booking.checkOutDate).format("DD/MM/YYYY")}
+                      </TableCell>
+                      <TableCell>{booking.status}</TableCell>
+                      <TableCell>
+                        {dayjs(booking.createdAt).format("DD/MM/YYYY hh:mm A")}
+                      </TableCell>
+                      <TableCell>
+                        <IconButton onClick={() => handleOpenDialog(booking)}>
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton onClick={() => handleDelete(booking._id)}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </>
       )}
-      {/* Booking Dialog */}
-      <Dialog open={open} onClose={handleCloseDialog}>
+      <Dialog open={open} onClose={handleCloseDialog} fullWidth>
         <DialogTitle>
-          {selectedBooking ? "Edit Booking" : "Add Booking"}
+          {(selectedBooking ? "Edit" : "Add") + " Booking"}
         </DialogTitle>
         <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            name="name"
-            label="Name"
-            fullWidth
-            value={formData.name}
-            onChange={handleFormChange}
-          />
-          <TextField
-            margin="dense"
-            name="description"
-            label="Description"
-            fullWidth
-            value={formData.description}
-            onChange={handleFormChange}
-          />
+          <Stack direction={"column"} spacing={2} mt={1} mb={1}>
+            <TextField
+              label="RoomId"
+              name="roomId"
+              value={formData.roomId}
+              onChange={handleFormChange}
+            />
+            {!selectedBooking && (
+              <TextField
+                label="Room Name"
+                name="roomName"
+                value={formData.roomName}
+                onChange={handleFormChange}
+              />
+            )}
+            <TextField
+              label="UserId"
+              name="userId"
+              value={formData.userId}
+              onChange={handleFormChange}
+            />
+            <TextField
+              label="Status"
+              name="status"
+              value={formData.status}
+              onChange={handleFormChange}
+            />
+            {/* <Autocomplete
+              disablePortal
+              id="roomId-autocomplete"
+              options={roomIds}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="RoomId"
+                  name="roomId"
+                  value={formData.roomId}
+                  onChange={handleFormChange}
+                />
+              )}
+            />
+            <Autocomplete
+              disablePortal
+              id="userId-autocomplete"
+              options={userIds}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="UserId"
+                  name="userId"
+                  value={formData.userId}
+                  onChange={handleFormChange}
+                />
+              )}
+            /> */}
+            <BasicDatePicker
+              checkInDate={dayjs(formData.checkInDate)}
+              checkOutDate={dayjs(formData.checkOutDate)}
+              onDateSelected={handleDateChange}
+            />
+            {/* <Autocomplete
+              disablePortal
+              id="status-autocomplete"
+              options={bookingStatusOptions}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Status"
+                  name="status"
+                  value={formData.status}
+                  onChange={handleFormChange}
+                />
+              )}
+            /> */}
+          </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
