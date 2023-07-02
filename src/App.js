@@ -1,7 +1,6 @@
 import "./App.css";
 import React, { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import MenuAppBar from "./components/AppBar";
 import CheckoutSuccess from "./components/PaymentSuccess";
 import NotFound from "./components/NotFound";
 import MyBookingsScreen from "./screens/MyBookingsScreen";
@@ -14,6 +13,7 @@ import ForgotPasswordScreen from "./screens/ForgotPasswordScreen";
 import ResetPasswordScreen from "./screens/ResetPasswordScreen";
 import PrivateScreen from "./screens/PrivateScreen";
 import AdminScreen from "./screens/AdminScreen";
+import MenuAppBar from "./components/AppBar";
 
 function App() {
   const [refreshAppBar, setRefreshAppBar] = useState(false);
