@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
+  Typography,
   Button,
   Dialog,
   DialogTitle,
@@ -19,6 +20,7 @@ import Loader from "../Loader";
 import Error from "../Error";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { AddCircleOutline as AddCircleOutlineIcon } from "@mui/icons-material";
 
 const RoomsTab = () => {
   const TableContainer = styled("div")({
@@ -65,10 +67,12 @@ const RoomsTab = () => {
       phoneNumber: room.phoneNumber,
       email: room.email,
       rentPerDay: room.rentPerDay,
+      imageUrl: room.imageUrl,
       roomType: room.roomType,
       description: room.description,
     });
   };
+
   const clearFormData = () => {
     setFormData({
       name: "",
@@ -76,9 +80,32 @@ const RoomsTab = () => {
       phoneNumber: "",
       email: "",
       rentPerDay: "",
+      imageUrl: [],
       roomType: "",
       description: "",
     });
+  };
+  const handleFieldChange = (fieldName, value) => {
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      [fieldName]: value,
+    }));
+  };
+  const handleLinkChange = (index, value) => {
+    const updatedLinks = [...formData.imageUrl];
+    updatedLinks[index] = value;
+    handleFieldChange("imageUrl", updatedLinks);
+  };
+
+  const handleAddLink = () => {
+    const links = [...formData.imageUrl, ""];
+    handleFieldChange("imageUrl", links);
+  };
+
+  const handleRemoveLink = (index) => {
+    const updatedLinks = [...formData.imageUrl];
+    updatedLinks.splice(index, 1);
+    handleFieldChange("imageUrl", updatedLinks);
   };
   const handleOpenDialog = (room) => {
     if (room) {
@@ -104,12 +131,25 @@ const RoomsTab = () => {
       console.log("delete room response: ", deleteRoom.data);
       getAllRooms();
     } catch (error) {
-      setLoading(false);
-      setError(error.response.data.error);
+      setError(error.message);
     }
+    setLoading(false);
+  };
+
+  const areFieldsEmpty = () => {
+    // remote empty links from formData
+    const imageUrl = formData.imageUrl.filter((link) => {
+      return link.length > 0;
+    });
+    handleFieldChange("imageUrl", imageUrl);
+    return !formData.name || !formData.roomType || !formData.description;
   };
 
   const handleSave = async () => {
+    if (areFieldsEmpty()) {
+      setError("Please fill all fields");
+      return;
+    }
     setLoading(true);
     // Save or update room data on the server
     try {
@@ -119,6 +159,7 @@ const RoomsTab = () => {
         phoneNumber: formData.phoneNumber,
         email: formData.email,
         rentPerDay: formData.rentPerDay,
+        imageUrl: formData.imageUrl,
         roomType: formData.roomType,
         description: formData.description,
       };
@@ -134,11 +175,10 @@ const RoomsTab = () => {
       }
       getAllRooms();
     } catch (error) {
-      console.log(error.response.data.error);
-      setLoading(false);
-      setError(error.response.data.error);
+      console.log(error.message);
+      setError(error.message);
     }
-
+    setLoading(false);
     handleCloseDialog();
   };
 
@@ -275,6 +315,28 @@ const RoomsTab = () => {
             value={formData.roomType}
             onChange={handleFormChange}
           />
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <Typography variant="h6" component="h2">
+              Insert New Room Image Url
+            </Typography>
+            <IconButton onClick={handleAddLink}>
+              <AddCircleOutlineIcon />
+            </IconButton>
+          </div>
+
+          {formData?.imageUrl?.map((link, index) => (
+            <div key={index} style={{ display: "flex", alignItems: "center" }}>
+              <TextField
+                value={link}
+                fullWidth
+                onChange={(e) => handleLinkChange(index, e.target.value)}
+              />
+              <IconButton onClick={() => handleRemoveLink(index)}>
+                <DeleteIcon />
+              </IconButton>
+            </div>
+          ))}
+
           <TextField
             autoFocus
             margin="dense"

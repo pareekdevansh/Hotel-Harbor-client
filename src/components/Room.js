@@ -20,7 +20,7 @@ function Room({ room, fromDate, toDate }) {
           <div className="row ">
             <img
               className="small-img"
-              src="https://hips.hearstapps.com/hmg-prod/images/living-room-ideas-caroline-turner-orchardlane01-copy-1670968014.jpeg?crop=1.00xw:0.751xh;0,0.171xh&resize=1200:*"
+              src={room?.imageUrl?.length ? room.imageUrl[0] : ""}
               alt="Room"
             />
             <div className="col" style={{ float: "right", textAlign: "left" }}>

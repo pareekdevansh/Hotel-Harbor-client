@@ -52,7 +52,6 @@ export default function MenuAppBar() {
         <Toolbar>
           <Typography
             variant="h6"
-            textAlign={"start"}
             component="div"
             onClick={() => (window.location.href = "/")}
             sx={{
@@ -74,7 +73,6 @@ export default function MenuAppBar() {
               <div>
                 <IconButton
                   size="large"
-                  textAlign={"end"}
                   aria-label="account of current user"
                   aria-controls="menu-appbar"
                   aria-haspopup="true"

@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
 function RoomFilter({
-  query, 
+  query,
   filterMaxCount,
   filterPriceRange,
   filterSelectedTags,
@@ -19,7 +19,7 @@ function RoomFilter({
   onPriceRangeChange,
   onTagsChange,
   onTextChange,
-  onFilter 
+  onFilter,
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -36,7 +36,6 @@ function RoomFilter({
   const handleCloseModal = () => {
     setIsModalOpen(false);
   };
-
 
   function applyFilter() {
     // Apply the filters
@@ -103,7 +102,6 @@ function RoomFilter({
             value={filterPriceRange}
             onChange={onPriceRangeChange}
             valueLabelDisplay="auto"
-            aria-label="Always visible"
             step={50}
             marks
             defaultValue={priceRange}

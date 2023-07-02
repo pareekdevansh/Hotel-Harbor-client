@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import Room from "../components/Room";
 import Loader from "../components/Loader";
@@ -20,21 +20,20 @@ function HomeScreen() {
   const [filteredRooms, setFilteredRooms] = useState([]);
 
   // filter section will use maxCount , priceRange, tags props to update ui
-  const [filterMaxCount, setFilterMaxCount] = useState(5);
-  const [filterPriceRange, setFilterPriceRange] = useState([300, 800]);
+  const [filterMaxCount, setFilterMaxCount] = useState(7);
+  const [filterPriceRange, setFilterPriceRange] = useState([300, 2000]);
   const [filterSelectedTags, setFilterSelectedTags] = useState([]);
 
   // handleFilter will always listen to these props
   // these props should only change upon pressing apply filters or clear filters
-  const [onFilterMaxCount, setOnFilterMaxCount] = useState(5);
-  const [onFilterPriceRange, setOnFilterPriceRange] = useState([300, 800]);
+  const [onFilterMaxCount, setOnFilterMaxCount] = useState(7);
+  const [onFilterPriceRange, setOnFilterPriceRange] = useState([300, 2000]);
   const [onFilterSelectedTags, setOnFilterSelectedTags] = useState([]);
 
   // to keep track of query typed in search textfield
   const [query, setQuery] = useState("");
-
   const handleMaxCountChange = (value) => {
-    if (value >= 2) {
+    if (value >= 1) {
       setFilterMaxCount(value);
     }
   };
@@ -52,56 +51,94 @@ function HomeScreen() {
   // !! by default dates selected will be (today , today + 3 days)
   const dateFormat = "DD/MM/YYYY";
   const today = dayjs();
-  //TODO: later change it to today.add(3 , "day");
-  const threeDaysLater = today.add(0, "day");
+  const threeDaysLater = today.add(3, "day");
   const [checkInDate, setCheckInDate] = useState(today);
   const [checkOutDate, setCheckOutDate] = useState(threeDaysLater);
 
-  useEffect(() => {
-    getAllRooms();
-  }, []);
-
-  // whenever check-in , check-out date changes according to applied filter, filter rooms on basis of date... need to take care of applied filter as well
-  useEffect(() => {
-    // check CheckInDate <= CheckOutDate
+  const filterRooms = async () => {
     if (
       checkInDate.isBefore(checkOutDate, "day") ||
       checkInDate.isSame(checkOutDate, "day")
     ) {
-      applyFilterOnRooms();
+      // Apply filters on rooms
+      let filteredRoomsList = [];
+      console.log("@filterRooms , array used for filtering rooms : ", rooms);
+      if (rooms.length) {
+        filteredRoomsList = await rooms.filter((room) => {
+          let isFiltersMatching =
+            room.maxCount <= onFilterMaxCount &&
+            room.rentPerDay >= onFilterPriceRange[0] &&
+            room.rentPerDay <= onFilterPriceRange[1] &&
+            (onFilterSelectedTags.length === 0 ||
+              onFilterSelectedTags.includes(room.roomType));
+          if (!isFiltersMatching) return false;
+          let isQueryMatching =
+            query.length === 0 ||
+            room.name.toLowerCase().includes(query.toLowerCase());
+          if (!isQueryMatching) return false;
+          for (const booking of room.currentBookings) {
+            const isBefore = checkOutDate.isBefore(booking.checkInDate, "day");
+            const isAfter = checkInDate.isAfter(booking.checkOutDate, "day");
 
-      console.log(`filtered rooms final result : ${filteredRooms}`);
+            if (!isBefore && !isAfter) {
+              console.log(`before ${isBefore}`);
+              console.log(`after ${isAfter}`);
+              console.log(`${room.name} Room is booked`);
+              return false; // Room is unavailable
+            }
+          }
+          console.log(`${room.name} Room is available`);
+          return true; // Room is available
+        });
+        console.log("@filterRooms templist[] : ", filteredRoomsList);
+        setFilteredRooms(filteredRoomsList);
+        console.log("@filterRooms actual filteredList[] : ", filteredRooms);
+      } else {
+        setFilteredRooms([]);
+        console.log("@filterRooms , roomslist was empty: ");
+      }
     } else {
       console.log("filteredRooms is empty");
     }
-  }, [checkInDate, checkOutDate, rooms]);
-  useEffect(() => {
-    if (
-      checkInDate.isBefore(checkOutDate, "day") ||
-      checkInDate.isSame(checkOutDate, "day")
-    ) {
-      applyFilterOnRooms();
-      console.log(`filtered rooms final result : ${filteredRooms}`);
-    } else {
-      console.log("filteredRooms is empty");
-    }
-  }, [query, onFilterMaxCount, onFilterPriceRange, onFilterSelectedTags]);
+    setLoading(false);
+  };
 
-  async function getAllRooms() {
+  const getAllRooms = async () => {
     setLoading(true);
+    setError(false);
     try {
-      const data = (await axios.get("/api/rooms/getallrooms")).data;
-      console.log(data);
-      setRooms(data);
-      setError(false);
-      setLoading(false);
+      const response = await axios.get("/api/rooms/getallrooms");
+      console.log("@getAllRooms response[] ", response.data);
+      return setRooms(response.data);
     } catch (error) {
-      setRooms([]);
-      setError(true);
       setLoading(false);
+      setError(true);
+      setRooms([]);
       console.log(error);
     }
-  }
+  };
+  useEffect(() => {
+    console.log("UseEffect with empty{} ");
+    getAllRooms();
+    console.log("ending UseEffect with empty dependency rooms{}: ", rooms);
+  }, []);
+  useEffect(() => {
+    console.log("useEffect with multiple {} : rooms[] : ", rooms);
+    filterRooms();
+    console.log(
+      "Ending useEffect with multiple {}: filteredROoms[]: ",
+      filteredRooms
+    );
+  }, [
+    checkInDate,
+    checkOutDate,
+    rooms,
+    onFilterMaxCount,
+    onFilterPriceRange,
+    onFilterSelectedTags,
+    query,
+  ]);
+
   async function applyCustomSortingOnRooms(sortType) {
     //value="","nameAsc","nameDesc","priceAsc","priceDesc","ratingDesc
     console.log(`sorting by ${sortType}`);
@@ -118,46 +155,6 @@ function HomeScreen() {
     });
     setFilteredRooms(roomsList);
     console.log("performed sorting");
-    // console.log(
-    // `list after sorting on basis of ${sortType} : ${JSON.stringify(
-    //     filteredRooms
-    //   )}`
-    // );
-  }
-  async function applyFilterOnRooms() {
-    try {
-      const filteredRoomsList = await rooms.filter((room) => {
-        let isQueryMatching =
-          query.length === 0 ||
-          room.name.toLowerCase().includes(query.toLowerCase());
-        if (!isQueryMatching) return false;
-        let isFiltersMatching =
-          room.maxCount <= onFilterMaxCount &&
-          room.rentPerDay >= onFilterPriceRange[0] &&
-          room.rentPerDay <= onFilterPriceRange[1] &&
-          (onFilterSelectedTags.length === 0 ||
-            onFilterSelectedTags.includes(room.roomType));
-        if (!isFiltersMatching) return false;
-        for (const booking of room.currentBookings) {
-          const isBefore = checkOutDate.isBefore(booking.checkInDate, "day");
-          const isAfter = checkInDate.isAfter(booking.checkOutDate, "day");
-
-          if (!isBefore && !isAfter) {
-            console.log(`before ${isBefore}`);
-            console.log(`after ${isAfter}`);
-            console.log(`${room.name} Room is unavailable`);
-            return false; // Room is unavailable
-          }
-        }
-        console.log(`${room.name} Room is available`);
-        return true; // Room is available
-      });
-      console.log(`filteredRoomsList : ${JSON.stringify(filteredRoomsList)}`);
-      setFilteredRooms(filteredRoomsList);
-    } catch (error) {
-      console.log("error while filtering");
-      setFilteredRooms([]);
-    }
   }
   async function handleFilter() {
     setOnFilterMaxCount(filterMaxCount);
@@ -192,15 +189,15 @@ function HomeScreen() {
                   flex: 1,
                   justifyContent: "center",
                 },
-                "& > *:first-child": {
+                "& > *:first-of-type": {
                   mb: { xs: 1, sm: 0 },
                   mr: { xs: 0, sm: 1 },
                   minWidth: { xs: "75%", sm: "30%" },
                 },
-                "& > *:nth-child(2)": {
+                "& > *:nth-of-type": {
                   minWidth: { xs: "75%", sm: "50%" },
                 },
-                "& > *:last-child": {
+                "& > *:last-of=type": {
                   ml: { xs: 0, sm: 1 },
                   minWidth: { xs: "75%", sm: "20%" },
                 },
@@ -233,7 +230,7 @@ function HomeScreen() {
               filteredRooms.map((room) => (
                 <div key={room._id} className="col m-4">
                   <Room
-                    room ={room}
+                    room={room}
                     fromDate={checkInDate}
                     toDate={checkOutDate}
                   />
