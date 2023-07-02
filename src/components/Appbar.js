@@ -4,36 +4,52 @@ import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
-import MenuIcon from "@mui/icons-material/Menu";
 import AccountCircle from "@mui/icons-material/AccountCircle";
-import Switch from "@mui/material/Switch";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import FormGroup from "@mui/material/FormGroup";
 import MenuItem from "@mui/material/MenuItem";
 import Menu from "@mui/material/Menu";
 import { useState, useEffect } from "react";
-import CheckoutSuccess from "./PaymentSuccess";
+import { useNavigate, useParams } from "react-router-dom";
+import { Stack } from "@mui/material";
 
-export default function MenuAppBar() {
-  const [auth, setAuth] = React.useState(true);
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const [user, setuser] = useState(null);
-  useEffect(() => {
-    setuser(JSON.parse(localStorage.getItem("currentUser")));
-  }, []);
+export default function MenuAppBar({ refreshAppBar }) {
+  const navigate = useNavigate();
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [user, setUser] = useState(null);
+  async function getSignedInUserDetails() {
+    const user = await JSON.parse(localStorage.getItem("currentUser"));
+    if (user?.name && user?.email) setUser(user);
+    console.log(user);
+  }
 
-  const handleChange = (event) => {
-    setAuth(event.target.checked);
-  };
+  useState(() => {
+    console.log("##@@called useEffect from menubar");
+    const user = JSON.parse(localStorage.getItem("currentUser"));
+    setUser(user);
+  }, [refreshAppBar]);
+
   const onNavigateToMyBookings = () => {
-    window.location.href = "/bookings";
+    navigate("/bookings");
+    setAnchorEl(null);
+  };
+  const handleHomeClick = () => {
+    const user = JSON.parse(localStorage.getItem("currentUser"));
+    setUser(user);
+    if (user === null) {
+      navigate("/login");
+    } else {
+      navigate("/home");
+    }
   };
   const onNavigateToAdminPanel = () => {
-    window.location.href = "/admin";
+    navigate("/admin");
+    setAnchorEl(null);
   };
+
   const onNavigateToUserProfile = () => {
-    window.location.href = "/profile";
+    navigate("/profile");
+    setAnchorEl(null);
   };
+
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -41,11 +57,15 @@ export default function MenuAppBar() {
   const handleClose = () => {
     setAnchorEl(null);
   };
+
   function onLogOut() {
-    // TODO show loading
     localStorage.removeItem("authToken");
-    window.location.href = "/login";
+    localStorage.removeItem("currentUser");
+    setUser(null);
+    handleClose();
+    navigate("/login");
   }
+
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static">
@@ -53,60 +73,84 @@ export default function MenuAppBar() {
           <Typography
             variant="h6"
             component="div"
-            onClick={() => (window.location.href = "/")}
+            float="flex-start"
             sx={{
-              flexGrow: 1,
               cursor: "pointer",
-              "&:hover": {
-                // textDecoration: "underline",
-              },
+              "&:hover": {},
             }}
+            onClick={handleHomeClick}
           >
             Hotel Harbor
           </Typography>
 
-          {auth && (
-            <div style={{ display: "flex", alignItems: "center" }}>
-              <div>
-                <Typography variant="body1">{user?.name}</Typography>
-              </div>
-              <div>
-                <IconButton
-                  size="large"
-                  aria-label="account of current user"
-                  aria-controls="menu-appbar"
-                  aria-haspopup="true"
-                  onClick={handleMenu}
-                  color="inherit"
-                >
-                  <AccountCircle />
-                </IconButton>
-                <Menu
-                  id="menu-appbar"
-                  anchorEl={anchorEl}
-                  anchorOrigin={{
-                    vertical: "top",
-                    horizontal: "right",
-                  }}
-                  keepMounted
-                  transformOrigin={{
-                    vertical: "top",
-                    horizontal: "right",
-                  }}
-                  open={Boolean(anchorEl)}
-                  onClose={handleClose}
-                >
-                  <MenuItem onClick={onNavigateToUserProfile}>Profile</MenuItem>
-                  <MenuItem onClick={onNavigateToMyBookings}>
-                    My Bookings
-                  </MenuItem>
+          {!user?.email > 0  || !user?.name > 0 ? (
+            <Stack ml={"auto"} direction="row" spacing={1} alignItems="center">
+              <Typography
+                variant="body1"
+                component="div"
+                sx={{
+                  flexGrow: 1,
+                  cursor: "pointer",
+                  "&:hover": {},
+                }}
+                onClick={() => navigate("/register")}
+              >
+                Register
+              </Typography>
+
+              <Typography
+                variant="body1"
+                onClick={() => navigate("/login")}
+                sx={{
+                  flexGrow: 1,
+                  cursor: "pointer",
+                  "&:hover": {},
+                }}
+              >
+                Login
+              </Typography>
+            </Stack>
+          ) : (
+            <Stack ml={"auto"} direction="row" spacing={1} alignItems="center">
+              <Typography variant="body1">{user?.name}</Typography>
+              <IconButton
+                size="large"
+                aria-label="account of current user"
+                aria-controls="menu-appbar"
+                aria-haspopup="true"
+                onClick={handleMenu}
+                color="inherit"
+              >
+                <AccountCircle />
+              </IconButton>
+
+              <Menu
+                id="menu-appbar"
+                anchorEl={anchorEl}
+                anchorOrigin={{
+                  vertical: "top",
+                  horizontal: "right",
+                }}
+                keepMounted
+                transformOrigin={{
+                  vertical: "top",
+                  horizontal: "right",
+                }}
+                open={Boolean(anchorEl)}
+                onClose={handleClose}
+              >
+                <MenuItem onClick={onNavigateToUserProfile}>Profile</MenuItem>
+                <MenuItem onClick={onNavigateToMyBookings}>
+                  My Bookings
+                </MenuItem>
+                {user?.isAdmin && (
                   <MenuItem onClick={onNavigateToAdminPanel}>
                     Admin Panel
                   </MenuItem>
-                  <MenuItem onClick={onLogOut}>Log Out</MenuItem>
-                </Menu>
-              </div>
-            </div>
+                )}
+                <MenuItem onClick={onLogOut}>Log Out</MenuItem>
+              </Menu>
+            </Stack>
           )}
         </Toolbar>
       </AppBar>

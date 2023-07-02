@@ -31,9 +31,13 @@ function LoginScreen() {
     navigate("/forgotpassword");
   };
   useEffect(() => {
-    if (localStorage.getItem("authToken")) {
+    let isCancelled = false;
+    if (!isCancelled && localStorage.getItem("authToken")) {
       navigate("/");
     }
+    return () => {
+      isCancelled = false;
+    };
   }, [navigate]);
   async function loginUser() {
     setLoading(true);
@@ -109,19 +113,19 @@ function LoginScreen() {
             label="Password"
             variant="outlined"
           />
-          <Button
-            variant="text"
-            sx={{ width: "20ch", float: "right" }}
-            onClick={navigateToForgotPassword}
-          >
-            <i>forgot password?</i>
-          </Button>
-          <Stack direction="row" justifyContent="center">
+          <Stack direction="row" justifyContent="flex-end">
             <Button
-              variant="outlined"
-              sx={{ width: "20ch" }}
-              onClick={loginUser}
+              variant="text"
+              autoCapitalize="none"
+              width={"20px"}
+              onClick={navigateToForgotPassword}
             >
+              <i style={{ textTransform: "lowercase" }}>forgot password?</i>
+            </Button>
+          </Stack>
+
+          <Stack direction="row" justifyContent="center">
+            <Button variant="outlined" onClick={loginUser}>
               Login
             </Button>
           </Stack>

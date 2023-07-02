@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Room from "../components/Room";
 import Loader from "../components/Loader";
@@ -7,9 +7,9 @@ import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import BasicDatePicker from "../components/Datepicker";
 import dayjs from "dayjs";
-import { TextField } from "@mui/material";
 import RoomFilter from "../components/RoomFilter";
 import RoomSort from "../components/RoomSort";
+import MenuAppBar from "../components/AppBar";
 function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -20,14 +20,15 @@ function HomeScreen() {
   const [filteredRooms, setFilteredRooms] = useState([]);
 
   // filter section will use maxCount , priceRange, tags props to update ui
-  const [filterMaxCount, setFilterMaxCount] = useState(7);
-  const [filterPriceRange, setFilterPriceRange] = useState([300, 2000]);
+  const [filterMaxCount, setFilterMaxCount] = useState(6);
+  const [filterPriceRange, setFilterPriceRange] = useState([100, 2000]);
   const [filterSelectedTags, setFilterSelectedTags] = useState([]);
+  const [sortType, setSortType] = useState("");
 
   // handleFilter will always listen to these props
   // these props should only change upon pressing apply filters or clear filters
-  const [onFilterMaxCount, setOnFilterMaxCount] = useState(7);
-  const [onFilterPriceRange, setOnFilterPriceRange] = useState([300, 2000]);
+  const [onFilterMaxCount, setOnFilterMaxCount] = useState(6);
+  const [onFilterPriceRange, setOnFilterPriceRange] = useState([100, 2000]);
   const [onFilterSelectedTags, setOnFilterSelectedTags] = useState([]);
 
   // to keep track of query typed in search textfield
@@ -54,7 +55,38 @@ function HomeScreen() {
   const threeDaysLater = today.add(3, "day");
   const [checkInDate, setCheckInDate] = useState(today);
   const [checkOutDate, setCheckOutDate] = useState(threeDaysLater);
-
+  const getAllRooms = async () => {
+    try {
+      const response = await axios.get("/api/rooms/getallrooms");
+      console.log("@getAllRooms response[] ", response.data);
+      setRooms(response.data);
+    } catch (error) {
+      setError(true);
+      setRooms([]);
+      console.log(error);
+    }
+  };
+  useEffect(() => {
+    getAllRooms();
+  }, []);
+  async function applyCustomSortingOnRooms(newValue = sortType) {
+    setSortType(newValue);
+    //value="","nameAsc","nameDesc","priceAsc","priceDesc","ratingDesc
+    console.log(`sorting by ${sortType}`);
+    const roomsList = Array.from(filteredRooms);
+    roomsList.sort((a, b) => {
+      console.log(a);
+      console.log(b);
+      if (sortType === "nameAsc") return a.name.localeCompare(b.name);
+      else if (sortType === "nameDesc") return b.name.localeCompare(a.name);
+      else if (sortType === "priceAsc") return a.rentPerDay - b.rentPerDay;
+      else if (sortType === "priceDesc") return b.rentPerDay - a.rentPerDay;
+      // else if (sortType === "ratingDesc") return b.rating - a.rating;
+      else return 0;
+    });
+    setFilteredRooms(roomsList);
+    console.log("performed sorting");
+  }
   const filterRooms = async () => {
     if (
       checkInDate.isBefore(checkOutDate, "day") ||
@@ -102,28 +134,9 @@ function HomeScreen() {
     }
     setLoading(false);
   };
-
-  const getAllRooms = async () => {
-    setLoading(true);
-    setError(false);
-    try {
-      const response = await axios.get("/api/rooms/getallrooms");
-      console.log("@getAllRooms response[] ", response.data);
-      return setRooms(response.data);
-    } catch (error) {
-      setLoading(false);
-      setError(true);
-      setRooms([]);
-      console.log(error);
-    }
-  };
-  useEffect(() => {
-    console.log("UseEffect with empty{} ");
-    getAllRooms();
-    console.log("ending UseEffect with empty dependency rooms{}: ", rooms);
-  }, []);
   useEffect(() => {
     console.log("useEffect with multiple {} : rooms[] : ", rooms);
+
     filterRooms();
     console.log(
       "Ending useEffect with multiple {}: filteredROoms[]: ",
@@ -138,28 +151,19 @@ function HomeScreen() {
     onFilterSelectedTags,
     query,
   ]);
+  useEffect(() => {
+    applyCustomSortingOnRooms();
+  }, [sortType]);
 
-  async function applyCustomSortingOnRooms(sortType) {
-    //value="","nameAsc","nameDesc","priceAsc","priceDesc","ratingDesc
-    console.log(`sorting by ${sortType}`);
-    const roomsList = Array.from(filteredRooms);
-    roomsList.sort((a, b) => {
-      console.log(a);
-      console.log(b);
-      if (sortType === "nameAsc") return a.name.localeCompare(b.name);
-      else if (sortType === "nameDesc") return b.name.localeCompare(a.name);
-      else if (sortType === "priceAsc") return a.rentPerDay - b.rentPerDay;
-      else if (sortType === "priceDesc") return b.rentPerDay - a.rentPerDay;
-      // else if (sortType === "ratingDesc") return b.rating - a.rating;
-      else return 0;
-    });
-    setFilteredRooms(roomsList);
-    console.log("performed sorting");
-  }
-  async function handleFilter() {
+  function handleFilter() {
     setOnFilterMaxCount(filterMaxCount);
     setOnFilterPriceRange(filterPriceRange);
     setOnFilterSelectedTags(filterSelectedTags);
+  }
+  function handleClearFilter() {
+    setOnFilterMaxCount(6);
+    setOnFilterPriceRange([100, 3000]);
+    setOnFilterSelectedTags([]);
   }
 
   const handleDateChange = (date) => {
@@ -182,24 +186,25 @@ function HomeScreen() {
           <Box>
             <Stack
               direction={{ xs: "column", sm: "row" }}
+              padding={2}
               spacing={2}
               alignItems="baseline"
               sx={{
+                "& > :nth-child(1)": {
+                  mb: { xs: 0, sm: 0 },
+                  mr: { xs: 0, sm: 1 },
+                  minWidth: { xs: "75%", sm: "40%" },
+                },
+                "& > :nth-child(2)": {
+                  minWidth: { xs: "75%", sm: "40%" },
+                },
+                "& > :nth-child(3)": {
+                  ml: { xs: 0, sm: 0 },
+                  minWidth: { xs: "75%", sm: "20%" },
+                },
                 "& > *": {
                   flex: 1,
                   justifyContent: "center",
-                },
-                "& > *:first-of-type": {
-                  mb: { xs: 1, sm: 0 },
-                  mr: { xs: 0, sm: 1 },
-                  minWidth: { xs: "75%", sm: "30%" },
-                },
-                "& > *:nth-of-type": {
-                  minWidth: { xs: "75%", sm: "50%" },
-                },
-                "& > *:last-of=type": {
-                  ml: { xs: 0, sm: 1 },
-                  minWidth: { xs: "75%", sm: "20%" },
                 },
               }}
             >
@@ -219,10 +224,14 @@ function HomeScreen() {
                   onTagsChange={handleTagsChange}
                   onTextChange={onTextChange}
                   onFilter={handleFilter}
+                  onClear={handleClearFilter}
                 />
               </Box>
               <RoomSort
-                onSort={(sortType) => applyCustomSortingOnRooms(sortType)}
+                sortType={sortType}
+                onSort={(newValue) => {
+                  applyCustomSortingOnRooms(newValue);
+                }}
               />
             </Stack>
 

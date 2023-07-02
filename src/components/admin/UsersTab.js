@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Button,
   Dialog,
@@ -20,14 +20,16 @@ import {
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import axios, { isCancel } from "axios";
+import axios from "axios";
 import Loader from "../Loader";
 import Error from "../Error";
 import { styled } from "@mui/system";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import dayjs from "dayjs";
+import { useNavigate } from "react-router-dom";
 
 const UsersTab = () => {
+  const navigate = useNavigate();
   const TableContainer = styled("div")({
     overflowX: "auto",
   });
@@ -42,16 +44,24 @@ const UsersTab = () => {
   const [selectedUser, setSelectedUser] = useState(null);
 
   //to refresh user's list
+  const fetchDataRef = useRef();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     isAdmin: false,
   });
-
-  // track of admin state
-  const [isAdminSelected, setIsAdminSelected] = useState(false);
-
+  const checkCurrentUserAdminAccess = () => {
+    const isAdmin = JSON.parse(localStorage.getItem("currentUser"))?.isAdmin;
+    if (!isAdmin) {
+      setError("You don't have admin access !!");
+      setTimeout(() => {
+        navigate("/profile");
+      }, errorDuration);
+      return false;
+    }
+    return true;
+  };
   const handleAdminSwitch = () => {
     const state = !formData.isAdmin;
     setFormData((prevFormData) => ({
@@ -60,33 +70,37 @@ const UsersTab = () => {
     }));
     console.log("formdata : ", formData);
   };
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      console.log("calling user endpoint");
-      const response = (await axios.get("/api/admin/users")).data;
 
-      setUsers(response);
-      console.log("Response[] : ", response);
-    } catch (error) {
-      setError(error.message);
-      console.log(error.message);
-    }
-    setLoading(false);
-  };
   useEffect(() => {
     let isCancelled = false;
+    if (isCancelled && !checkCurrentUserAdminAccess()) return;
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        console.log("calling user endpoint");
+        const response = (await axios.get("/api/admin/users")).data;
+        if (!isCancelled) setUsers(response);
+        console.log("Response[] : ", response);
+      } catch (error) {
+        setError(error.message);
+        console.log(error.message);
+      }
+      setLoading(false);
+    };
+    fetchData();
     if (!isCancelled) {
-      console.log("not cancelled");
-      fetchData();
-    } else {
-      console.log("cancelled");
+      fetchDataRef.current = fetchData;
     }
     return () => {
+      fetchDataRef.current = undefined;
       isCancelled = true;
     };
   }, []);
-
+  function callFetchData() {
+    if (fetchDataRef) {
+      fetchDataRef.current();
+    }
+  }
   const handleOpenDialog = (user) => {
     if (user) {
       setSelectedUser(user);
@@ -112,14 +126,12 @@ const UsersTab = () => {
   };
 
   const handleDelete = async (userId) => {
+    if (!checkCurrentUserAdminAccess()) return;
     // Delete user from the server
     setLoading(true);
     try {
       const deleteUser = await axios.delete(`/api/admin/users/${userId}`);
-      console.log("delete user response: ", deleteUser.data);
-      const updatedUsersList = await users.filter((user) => user.id !== userId);
-      setUsers(updatedUsersList);
-      fetchData();
+      callFetchData();
     } catch (error) {
       setLoading(false);
       setError(error.response.data.error);
@@ -130,6 +142,7 @@ const UsersTab = () => {
     return !formData.name || !formData.email;
   };
   const handleSave = async () => {
+    if (!checkCurrentUserAdminAccess()) return;
     console.log("data forms: ", formData);
     if (isFormDataEmpty() && (selectedUser || !formData.password)) {
       setError("Pleas Fill User Data First!!");
@@ -149,14 +162,6 @@ const UsersTab = () => {
           userData
         );
         console.log("newUser: ", newUser.data);
-        const updatedUsersList = users.map((user) => {
-          if (user._id === selectedUser._id) {
-            return newUser.data;
-          } else {
-            return user;
-          }
-        });
-        setUsers(updatedUsersList);
       } else {
         const userData = {
           name: formData.name,
@@ -166,15 +171,13 @@ const UsersTab = () => {
         };
         const newUser = await axios.post("/api/admin/users", userData);
         console.log("newUser: ", newUser.data);
-        const updatedUsersList = [...users, newUser.data];
-        setUsers(updatedUsersList);
       }
-      fetchData();
     } catch (error) {
       console.log(error.response.data.error);
       setLoading(false);
       setError(error.message);
     }
+    callFetchData();
     handleCloseDialog();
   };
 

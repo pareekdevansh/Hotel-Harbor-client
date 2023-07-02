@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,  useRef } from "react";
 import {
   IconButton,
   Button,
@@ -18,6 +18,7 @@ import {
   FormControlLabel,
   Checkbox,
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import axios from "axios";
@@ -30,6 +31,7 @@ import { DatePicker } from "@mui/x-date-pickers";
 import BasicDatePicker from "../Datepicker";
 
 const BookingsTab = () => {
+  const navigate = useNavigate();
   const TableContainer = styled("div")({
     overflowX: "auto",
   });
@@ -44,6 +46,9 @@ const BookingsTab = () => {
   // dialog state
   const [open, setOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const getAllBookingsRef = useRef();
+  const getRoomIdsRef = useRef();
+  const getUserIdsRef = useRef();
   const bookingStatusOptions = ["Booked", "Pending", "Cancelled"];
   const [roomIds, setRoomIds] = useState([]);
   const [userIds, setUserIds] = useState([]);
@@ -64,15 +69,31 @@ const BookingsTab = () => {
       checkOutDate: checkOutDate,
     }));
   };
+  const checkCurrentUserAdminAccess = () => {
+    const isAdmin = JSON.parse(localStorage.getItem("currentUser"))?.isAdmin;
+    if (!isAdmin) {
+      setError("You don't have admin access !!");
+      setTimeout(() => {
+        navigate("/profile");
+      }, errorDuration);
+      return false;
+    }
+    return true;
+  };
   useEffect(() => {
     // Fetch bookings data from the server
+    let isCancelled = false;
+
     const getAllBookings = async () => {
+      if (!isCancelled && !checkCurrentUserAdminAccess) {
+        return;
+      }
       setLoading(true);
       try {
         console.log("calling booking endpoint ");
         const response = await axios.get("/api/admin/bookings");
         console.log("bookings[] : ", bookings);
-        setBookings(response.data);
+        if (!isCancelled) setBookings(response.data);
       } catch (error) {
         setLoading(false);
         setError(error.message);
@@ -81,22 +102,28 @@ const BookingsTab = () => {
       setLoading(false);
     };
     const getRoomIdsList = async () => {
+      if (!isCancelled && !checkCurrentUserAdminAccess) {
+        return;
+      }
       setLoading(true);
       try {
         const response = await axios.get("/api/admin/rooms");
         const roomIdsList = await response.data.map((room) => room._id);
-        setRoomIds(roomIdsList);
+        if (!isCancelled) setRoomIds(roomIdsList);
       } catch (error) {
         setError(error.message);
       }
       setLoading(false);
     };
     const getUserIdsList = async () => {
+      if (!isCancelled && !checkCurrentUserAdminAccess) {
+        return;
+      }
       setLoading(true);
       try {
         const response = await axios.get("/api/admin/users");
         const userIdsList = await response.data.map((user) => user._id);
-        setUserIds(userIdsList);
+        if (!isCancelled) setUserIds(userIdsList);
       } catch (error) {
         setError(error.message);
       }
@@ -105,6 +132,14 @@ const BookingsTab = () => {
     getAllBookings();
     getRoomIdsList();
     getUserIdsList();
+    if (!isCancelled) {
+      getAllBookingsRef.current = getAllBookings();
+      getRoomIdsRef.current = getRoomIdsList();
+      getUserIdsRef.current = getUserIdsList();
+    }
+    return () => {
+      isCancelled = true;
+    };
   }, []);
 
   const handleOpenDialog = (booking) => {
@@ -134,8 +169,25 @@ const BookingsTab = () => {
   const handleCloseDialog = () => {
     setOpen(false);
   };
-
+  const callGetAllBookings = () => {
+    if (getAllBookingsRef) {
+      getAllBookingsRef.current();
+    }
+  };
+  const callGetRoomIds = () => {
+    if (getRoomIdsRef) {
+      getRoomIdsRef.current();
+    }
+  };
+  const callGetUserIds = () => {
+    if (getUserIdsRef) {
+      getUserIdsRef.current();
+    }
+  };
   const handleDelete = async (bookingId) => {
+    if (!checkCurrentUserAdminAccess) {
+      return;
+    }
     // Delete booking from the server
     setLoading(true);
     try {
@@ -143,10 +195,9 @@ const BookingsTab = () => {
         `/api/admin/bookings/${bookingId}`
       );
       console.log("delete booking response: ", deleteBooking.data);
-      const updatedBookingsList = await bookings.filter(
-        (booking) => booking.id !== bookingId
-      );
-      setBookings(updatedBookingsList);
+      callGetAllBookings();
+      callGetRoomIds();
+      callGetUserIds();
     } catch (error) {
       setLoading(false);
       setError(error.response.data.error);
@@ -162,6 +213,9 @@ const BookingsTab = () => {
     );
   };
   const handleSave = async () => {
+    if (!checkCurrentUserAdminAccess) {
+      return;
+    }
     console.log("data forms: ", formData);
     if (isFormDataEmpty() && (selectedBooking || !formData.roomName)) {
       setError("Pleas Fill Booking Data First!!");
@@ -184,10 +238,6 @@ const BookingsTab = () => {
           booking
         );
         console.log("Updated booking:", updatedBooking.data);
-        const updatedBookingsList = bookings.map((booking) =>
-          booking._id === selectedBooking._id ? updatedBooking.data : booking
-        );
-        setBookings(updatedBookingsList);
       } else {
         const booking = {
           roomId: formData.roomId,
@@ -200,8 +250,6 @@ const BookingsTab = () => {
         console.log("call to new booking function");
         const newBooking = await axios.post("/api/admin/bookings", booking);
         console.log("New booking:", newBooking.data);
-        const updatedBookingsList = [...bookings, newBooking.data];
-        setBookings(updatedBookingsList);
       }
       setLoading(false);
     } catch (error) {
@@ -209,7 +257,9 @@ const BookingsTab = () => {
       setLoading(false);
       setError(error.message);
     }
-
+    callGetAllBookings();
+    callGetRoomIds();
+    callGetUserIds();
     handleCloseDialog();
   };
 

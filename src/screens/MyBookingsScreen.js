@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import BookedRoom from "../components/BookedRoom";
 function MyBookingsScreen() {
   const navigate = useNavigate();
-  const [userDetails, setUserDetails] = useState(null);
+  const [user, setUser] = useState(null);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -18,60 +18,39 @@ function MyBookingsScreen() {
       if (login) {
         console.log("login related error  ");
         localStorage.removeItem("authToken");
+        localStorage.removeItem("currentUser");
         navigate("/login");
       }
     }, duration);
   };
   useEffect(() => {
+    let isCancelled = false;
     const getBookingsFromEmail = async (email) => {
       try {
-        if (email) {
-          const bookings = (
-            await axios.post("/api/bookings/getbookigsfromemail", {
-              email: email,
-            })
-          ).data;
-          console.log("bookings list : ", bookings);
-          setBookings(bookings);
-        } else {
-          throw new Error("User is not logged in");
+        setLoading(true);
+        const email = JSON.parse(localStorage.getItem("currentUser"))?.email;
+        if (!email) {
+          showError("Please Login First", true);
+          return;
         }
+        const bookings = (
+          await axios.post("/api/bookings/getbookigsfromemail", {
+            email: email,
+          })
+        ).data;
+        console.log("bookings list : ", bookings);
+        if (!isCancelled) setBookings(bookings);
       } catch (error) {
+        setBookings([]);
         console.log("getBookingsFromEmail error is : ", JSON.stringify(error));
         setError(error.message || "Something went wrong");
       }
     };
-    const getUserDetails = async () => {
-      try {
-        setLoading(true);
-        let authToken = localStorage.getItem("authToken");
-        if (!authToken) {
-          showError("Please Login First", true);
-          return;
-        }
-        const config = {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-          },
-        };
-        console.log("before calling getUserDetails API");
-        const response = await axios.get("/api/users/getuserdetails", config);
-        setUserDetails(response.data);
-        console.log("user details are : ", userDetails);
-        console.log("before calling getBookingsFromEmail");
-        await getBookingsFromEmail(userDetails?.email);
-
-        setLoading(false);
-      } catch (error) {
-        console.log("getUserDetails error is : ", JSON.stringify(error));
-        let login =
-          error.response.data.error === "No User Found" || "Please Login First";
-        showError(error.response.data.error, login);
-      }
+    getBookingsFromEmail();
+    return () => {
+      isCancelled = true;
     };
-    getUserDetails();
-  }, [userDetails]);
+  }, []);
 
   return (
     <Box>

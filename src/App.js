@@ -1,5 +1,5 @@
 import "./App.css";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MenuAppBar from "./components/AppBar";
 import CheckoutSuccess from "./components/PaymentSuccess";
@@ -16,32 +16,44 @@ import PrivateScreen from "./screens/PrivateScreen";
 import AdminScreen from "./screens/AdminScreen";
 
 function App() {
+  const [refreshAppBar, setRefreshAppBar] = useState(false);
+
+  const handleAppBarRefresh = () => {
+    const oldValue = refreshAppBar;
+    setRefreshAppBar(!oldValue);
+  };
   return (
     <div className="App">
-      <MenuAppBar />
       <BrowserRouter>
+        {refreshAppBar && <MenuAppBar refreshAppBar={refreshAppBar} />}
+        {!refreshAppBar && <MenuAppBar refreshAppBar={refreshAppBar} />}
         <Routes>
-          <Route path="/" element={<PrivateScreen />} />
-          <Route path="/register" Component={RegisterScreen} />
-          <Route path="/login" Component={LoginScreen} />
-          <Route path="/forgotpassword" Component={ForgotPasswordScreen} />
+          <Route
+            path="/"
+            element={
+              <PrivateScreen handleAppBarRefresh={handleAppBarRefresh} />
+            }
+          />
+          <Route path="/register" element={<RegisterScreen />} />
+          <Route path="/login" element={<LoginScreen />} />
+          <Route path="/forgotpassword" element={<ForgotPasswordScreen />} />
           <Route
             path="/resetpassword/:resetToken"
-            Component={ResetPasswordScreen}
+            element={<ResetPasswordScreen />}
           />
-          <Route path="/home" Component={HomeScreen} />
+          <Route path="/home" element={<HomeScreen />} />
           <Route
             path="/book/:roomId/:fromDate/:toDate"
-            Component={BookingScreen}
+            element={<BookingScreen />}
           />
           <Route
             path="/checkout-success/:roomId/:checkInDate/:checkOutDate/:bookingId"
-            Component={CheckoutSuccess}
+            element={<CheckoutSuccess />}
           />
-          <Route path="/admin" Component={AdminScreen} />
-          <Route path="/bookings" Component={MyBookingsScreen} />
-          <Route path="/profile" Component={UserProfile} />
-          <Route path="*" Component={NotFound} />
+          <Route path="/admin" element={<AdminScreen />} />
+          <Route path="/bookings" element={<MyBookingsScreen />} />
+          <Route path="/profile" element={<UserProfile />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </div>

@@ -8,7 +8,9 @@ import {
   Box,
   Stack,
   IconButton,
+  InputAdornment,
 } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
 function RoomFilter({
   query,
@@ -20,15 +22,11 @@ function RoomFilter({
   onTagsChange,
   onTextChange,
   onFilter,
+  onClear,
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // default filter properties
-  // this properties will be applied upon clearing filters
-  const maxCount = 5;
-  const priceRange = [300, 800];
-  const allTags = ["Suite", "Deluxe", "Economy"];
-
+  const priceRange = [100, 2000];
+  const allTags = ["Deluxe", "Economy", "Premium"];
   const handleOpenModal = () => {
     setIsModalOpen(true);
   };
@@ -38,28 +36,13 @@ function RoomFilter({
   };
 
   function applyFilter() {
-    // Apply the filters
-    const filters = {
-      maxCount: filterMaxCount,
-      priceStart: filterPriceRange[0],
-      priceEnd: filterPriceRange[1],
-      tags: filterSelectedTags,
-    };
-    console.log(filters);
-
     // apply the filters and close the modal
     onFilter();
     handleCloseModal();
   }
   function clearFilter() {
-    const filters = {
-      maxCount: maxCount,
-      priceRange: priceRange,
-      tags: allTags,
-    };
-    console.log(filters);
     // clear Filters and close the modal
-    onFilter();
+    onClear();
     handleCloseModal();
   }
 
@@ -70,8 +53,16 @@ function RoomFilter({
           label="Search Rooms"
           variant="outlined"
           value={query}
+          fullWidth
           onChange={onTextChange}
           sx={{ width: "100%" }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
         />
         <IconButton onClick={handleOpenModal} title="Filter">
           <FilterListIcon />

@@ -1,4 +1,4 @@
-import React, { useState , useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Typography from "@mui/material/Typography";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
@@ -7,55 +7,34 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 function UserProfile() {
   const navigate = useNavigate();
-  const [userDetails, setUserDetails] = useState(null);
-  const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const duration = 3000;
   const showError = (message, login) => {
-    setLoading(false);
     setError(message);
     setTimeout(() => {
       setError("");
       if (login) {
-        console.log("login related error  ");
-        localStorage.removeItem("authToken");
         navigate("/login");
       }
     }, duration);
   };
   useEffect(() => {
     const getUserDetails = async () => {
-      try {
-        setLoading(true);
-        let authToken = localStorage.getItem("authToken");
-        if (!authToken) {
-          showError("Please Login First", true);
-        }
-        const config = {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
-          },
-        };
-        console.log("before calling getUserDetails API");
-        const response = await axios.get("/api/users/getuserdetails", config);
-        setUserDetails(response.data);
-        console.log("user details are : ", userDetails);
-        setLoading(false);
-      } catch (error) {
-        console.log("getUserDetails error is : ", JSON.stringify(error));
-        let login =
-          error.response.data.error === "No User Found" || "Please Login First";
-        showError(error.response.data.error, login);
+      let user = JSON.parse(localStorage.getItem("currentUser"));
+      if (!user) {
+        showError("Please Login First", true);
+        return;
       }
+      setUser(user);
     };
 
     getUserDetails();
   }, []);
   const handleLogout = () => {
-    // Handle logout logic here
     localStorage.removeItem("authToken");
+    localStorage.removeItem("currentUser");
     navigate("/login");
   };
 
@@ -65,15 +44,24 @@ function UserProfile() {
         <Typography variant="h4" gutterBottom>
           User Profile
         </Typography>
-        <Typography variant="subtitle1" color="text.secondary">
-          Name: {userDetails?.name}
-        </Typography>
-        <Typography variant="subtitle1" color="text.secondary">
-          Email: {userDetails?.email}
-        </Typography>
-        <Button variant="contained" onClick={handleLogout} sx={{ mt: 2 }}>
-          Logout
-        </Button>
+        {user && (
+          <>
+            <Typography variant="subtitle1" color="text.secondary">
+              Name: {user?.name}
+            </Typography>
+            <Typography variant="subtitle1" color="text.secondary">
+              Email: {user?.email}
+            </Typography>
+            <Button variant="contained" onClick={handleLogout} sx={{ mt: 2 }}>
+              Logout
+            </Button>
+          </>
+        )}
+        {!user && (
+          <Typography variant="subtitle1" color="text.secondary">
+            Session Time Out.. Please Login Again
+          </Typography>
+        )}
       </CardContent>
     </Card>
   );

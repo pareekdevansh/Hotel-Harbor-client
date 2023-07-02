@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Typography,
   Button,
@@ -21,12 +21,14 @@ import Error from "../Error";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { AddCircleOutline as AddCircleOutlineIcon } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
 
 const RoomsTab = () => {
+  const navigate = useNavigate();
   const TableContainer = styled("div")({
     overflowX: "auto",
   });
-
+  const getAllRoomsRef = useRef();
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -44,21 +46,40 @@ const RoomsTab = () => {
     roomType: "",
     description: "",
   });
-  const getAllRooms = async () => {
-    setLoading(true);
-    try {
-      console.log("calling room endpoint ");
-      const response = (await axios.get("/api/admin/rooms/")).data;
-      console.log("rooms[] : ", response);
-      setRooms(response);
-    } catch (error) {
-      setError(error.message);
-      console.log(error.message);
+  const checkCurrentUserAdminAccess = () => {
+    const isAdmin = JSON.parse(localStorage.getItem("currentUser"))?.isAdmin;
+    if (!isAdmin) {
+      setError("You don't have admin access !!");
+      setTimeout(() => {
+        navigate("/profile");
+      }, errorDuration);
+      return false;
     }
-    setLoading(false);
+    return true;
   };
   useEffect(() => {
+    let isCancelled = false;
+    const getAllRooms = async () => {
+      setLoading(true);
+      try {
+        console.log("calling room endpoint ");
+        const response = (await axios.get("/api/admin/rooms/")).data;
+        console.log("rooms[] : ", response);
+        if (!isCancelled) setRooms(response);
+      } catch (error) {
+        setError(error.message);
+        console.log(error.message);
+      }
+      setLoading(false);
+    };
     getAllRooms();
+
+    if (!isCancelled) {
+      getAllRoomsRef.current = getAllRooms();
+    }
+    return () => {
+      isCancelled = false;
+    };
   }, []);
   const fillFormData = (room) => {
     setFormData({
@@ -122,14 +143,19 @@ const RoomsTab = () => {
     clearFormData();
     setOpen(false);
   };
-
+  const callGetAllRooms = () => {
+    if (getAllRoomsRef) {
+      getAllRoomsRef.current();
+    }
+  }
   const handleDelete = async (roomId) => {
+    if (!checkCurrentUserAdminAccess()) return;
     // Delete room from the server
     setLoading(true);
     try {
       const deleteRoom = await axios.delete(`/api/admin/rooms/${roomId}`);
       console.log("delete room response: ", deleteRoom.data);
-      getAllRooms();
+      callGetAllRooms()
     } catch (error) {
       setError(error.message);
     }
@@ -146,6 +172,8 @@ const RoomsTab = () => {
   };
 
   const handleSave = async () => {
+    if (!checkCurrentUserAdminAccess)
+      return
     if (areFieldsEmpty()) {
       setError("Please fill all fields");
       return;
@@ -173,7 +201,7 @@ const RoomsTab = () => {
         const newRoom = await axios.post("/api/admin/rooms", roomData);
         console.log("newRoom: ", newRoom.data);
       }
-      getAllRooms();
+      callGetAllRooms();
     } catch (error) {
       console.log(error.message);
       setError(error.message);

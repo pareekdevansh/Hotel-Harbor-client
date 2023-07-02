@@ -1,20 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 
-function RoomSort({ onSort }) {
-  const [sortType, setSortType] = useState("");
-
+function RoomSort({ sortType, onSort }) {
   const handleSortChange = (event) => {
     const selectedSortType = event.target.value;
-    setSortType(selectedSortType);
     onSort(selectedSortType);
   };
-  useEffect(() => {
-    console.log(sortType);
-  }, [sortType]);
 
   return (
-    <FormControl variant="outlined" sx={{ minWidth: 200 }}>
+    <FormControl variant="outlined">
       <InputLabel id="sort-label">Sort by</InputLabel>
       <Select
         labelId="sort-label"
