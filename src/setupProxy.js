@@ -4,16 +4,8 @@ module.exports = function (app) {
   app.use(
     "/api",
     createProxyMiddleware({
-      // target: "http://localhost:5000",
-      target: "https://harbor-backend-service.onrender.com",
+      target: process.env.SERVER_URL,
       changeOrigin: true,
     })
   );
-  // app.use(
-  //   "/api/stripe",
-  //   createProxyMiddleware({
-  //     target: "http://localhost:4242",
-  //     changeOrigin: true,
-  //   })
-  // );
 };
