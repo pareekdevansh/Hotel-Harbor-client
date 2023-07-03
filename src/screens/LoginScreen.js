@@ -53,11 +53,13 @@ function LoginScreen() {
     };
     console.log("user entered fields before call : ", JSON.stringify(user));
     try {
+      console.log("making login call ");
       const { data } = await axios.post("/api/auth/login", user, config);
+      console.log("login response : ", data);
       localStorage.setItem("authToken", data.token);
       console.log("a fresh token received: ", data.token);
       console.log(
-        "local Storage taken value : ",
+        "local Storage token value : ",
         localStorage.getItem("authToken")
       );
       setSuccess("Login Successful!");
@@ -68,7 +70,8 @@ function LoginScreen() {
     } catch (error) {
       setLoading(false);
       setTimeout(() => {
-        setError(error.response.data.error || "Something went wrong!");
+        console.log("error json: ", JSON.stringify(error));
+        setError(error.response || "Something went wrong!");
       }, errorDuration);
       setError("");
     }
