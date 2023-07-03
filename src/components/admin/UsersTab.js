@@ -212,58 +212,55 @@ const UsersTab = () => {
           >
             Add User
           </Button>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Sr No.</TableCell>
-                <TableCell>ID</TableCell>
-                <TableCell>Name</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Created At</TableCell>
-                <TableCell>Updated At</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {users.length ? (
-                users.map((user, index) => (
-                  <TableRow key={user._id}>
-                    <TableCell>{index + 1}.</TableCell>
-                    <TableCell>{user._id}</TableCell>
-                    <TableCell>{user.name}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
-                      {dayjs(user.createdAt).format("DD/MM/YYYY hh:mm A")}
-                    </TableCell>
-                    <TableCell>
-                      {dayjs(user.updatedAt).format("DD/MM/YYYY hh:mm A")}
-                    </TableCell>
-                    <TableCell>
-                      <IconButton
-                        aria-label="status"
-                        onClick={handleAdminSwitch}
-                      >
-                        <AdminPanelSettingsIcon
-                          sx={{ color: user.isAdmin ? "blue" : "grey" }}
-                        />
-                      </IconButton>
-                      <IconButton onClick={() => handleOpenDialog(user)}>
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton onClick={() => handleDelete(user._id)}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
+          <TableContainer>
+            <Table>
+              <TableHead>
                 <TableRow>
-                  <TableCell colSpan={5}>No users found.</TableCell>
+                  <TableCell>Sr No.</TableCell>
+                  <TableCell>ID</TableCell>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Created At</TableCell>
+                  <TableCell>Updated At</TableCell>
+                  <TableCell>Actions</TableCell>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
-          <TableContainer></TableContainer>
+              </TableHead>
+              <TableBody>
+                {users.length
+                  ? users.map((user, index) => (
+                      <TableRow key={user._id}>
+                        <TableCell>{index + 1}.</TableCell>
+                        <TableCell>{user._id}</TableCell>
+                        <TableCell>{user.name}</TableCell>
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell>
+                          {dayjs(user.createdAt).format("DD/MM/YYYY hh:mm A")}
+                        </TableCell>
+                        <TableCell>
+                          {dayjs(user.updatedAt).format("DD/MM/YYYY hh:mm A")}
+                        </TableCell>
+                        <TableCell>
+                          <IconButton
+                            aria-label="status"
+                            onClick={handleAdminSwitch}
+                          >
+                            <AdminPanelSettingsIcon
+                              sx={{ color: user.isAdmin ? "blue" : "grey" }}
+                            />
+                          </IconButton>
+                          <IconButton onClick={() => handleOpenDialog(user)}>
+                            <EditIcon />
+                          </IconButton>
+                          <IconButton onClick={() => handleDelete(user._id)}>
+                            <DeleteIcon />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  : null}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </>
       )}
 

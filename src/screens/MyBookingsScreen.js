@@ -38,8 +38,12 @@ function MyBookingsScreen() {
             email: email,
           })
         ).data;
+        bookings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
         console.log("bookings list : ", bookings);
-        if (!isCancelled) setBookings(bookings);
+        if (!isCancelled) {
+          setBookings(bookings);
+        }
       } catch (error) {
         setBookings([]);
         console.log("getBookingsFromEmail error is : ", JSON.stringify(error));

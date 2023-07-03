@@ -147,7 +147,7 @@ const RoomsTab = () => {
     if (getAllRoomsRef) {
       getAllRoomsRef.current();
     }
-  }
+  };
   const handleDelete = async (roomId) => {
     if (!checkCurrentUserAdminAccess()) return;
     // Delete room from the server
@@ -155,7 +155,7 @@ const RoomsTab = () => {
     try {
       const deleteRoom = await axios.delete(`/api/admin/rooms/${roomId}`);
       console.log("delete room response: ", deleteRoom.data);
-      callGetAllRooms()
+      callGetAllRooms();
     } catch (error) {
       setError(error.message);
     }
@@ -172,8 +172,7 @@ const RoomsTab = () => {
   };
 
   const handleSave = async () => {
-    if (!checkCurrentUserAdminAccess)
-      return
+    if (!checkCurrentUserAdminAccess) return;
     if (areFieldsEmpty()) {
       setError("Please fill all fields");
       return;
@@ -237,52 +236,54 @@ const RoomsTab = () => {
           >
             Add Room
           </Button>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Sr No.</TableCell>
-                <TableCell>ID</TableCell>
-                <TableCell>Name</TableCell>
-                <TableCell>Capacity</TableCell>
-                <TableCell>Phone Number </TableCell>
-                <TableCell>Email </TableCell>
-                <TableCell>Rent</TableCell>
-                <TableCell>Room Type </TableCell>
-                <TableCell>Action</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rooms.length &&
-                rooms.map((room, index) => (
-                  <TableRow key={room._id}>
-                    <TableCell>{index + 1}.</TableCell>
-                    <TableCell>{room._id}</TableCell>
-                    <TableCell>{room.name}</TableCell>
-                    <TableCell>{room.maxCount}</TableCell>
-                    <TableCell>{room.phoneNumber}</TableCell>
-                    <TableCell>{room.email}</TableCell>
-                    <TableCell>{room.rentPerDay}</TableCell>
-                    <TableCell>{room.roomType}</TableCell>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Sr No.</TableCell>
+                  <TableCell>ID</TableCell>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Capacity</TableCell>
+                  <TableCell>Phone Number </TableCell>
+                  <TableCell>Email </TableCell>
+                  <TableCell>Rent</TableCell>
+                  <TableCell>Room Type </TableCell>
+                  <TableCell>Action</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {rooms.length &&
+                  rooms.map((room, index) => (
+                    <TableRow key={room._id}>
+                      <TableCell>{index + 1}.</TableCell>
+                      <TableCell>{room._id}</TableCell>
+                      <TableCell>{room.name}</TableCell>
+                      <TableCell>{room.maxCount}</TableCell>
+                      <TableCell>{room.phoneNumber}</TableCell>
+                      <TableCell>{room.email}</TableCell>
+                      <TableCell>{room.rentPerDay}</TableCell>
+                      <TableCell>{room.roomType}</TableCell>
 
-                    <TableCell>
-                      <IconButton
-                        aria-label="edit"
-                        onClick={() => handleOpenDialog(room)}
-                      >
-                        <EditIcon />
-                      </IconButton>
+                      <TableCell>
+                        <IconButton
+                          aria-label="edit"
+                          onClick={() => handleOpenDialog(room)}
+                        >
+                          <EditIcon />
+                        </IconButton>
 
-                      <IconButton
-                        variant="outlined"
-                        onClick={() => handleDelete(room._id)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-            </TableBody>
-          </Table>
+                        <IconButton
+                          variant="outlined"
+                          onClick={() => handleDelete(room._id)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </>
       )}
 

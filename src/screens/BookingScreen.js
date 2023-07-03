@@ -116,13 +116,14 @@ function BookingScreen() {
                   height: "500px",
                   width: "100%",
                   borderRadius: "10px",
+                  paddingBottom: "10px",
                 }}
                 src={room.imageUrl[0]}
                 alt="Room"
               />
             </div>
             <div
-              style={{ textAlign: "right" }}
+              style={{ textAlign: "center" }}
               className="col-md-4 m-2 mt-auto"
             >
               <div>

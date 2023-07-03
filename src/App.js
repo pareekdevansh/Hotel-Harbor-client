@@ -28,6 +28,7 @@ function App() {
         {refreshAppBar && <MenuAppBar refreshAppBar={refreshAppBar} />}
         {!refreshAppBar && <MenuAppBar refreshAppBar={refreshAppBar} />}
         <Routes>
+          <Route path="/login" element={<LoginScreen />} />
           <Route
             path="/"
             element={
@@ -35,7 +36,6 @@ function App() {
             }
           />
           <Route path="/register" element={<RegisterScreen />} />
-          <Route path="/login" element={<LoginScreen />} />
           <Route path="/forgotpassword" element={<ForgotPasswordScreen />} />
           <Route
             path="/resetpassword/:resetToken"
@@ -52,7 +52,10 @@ function App() {
           />
           <Route path="/admin" element={<AdminScreen />} />
           <Route path="/bookings" element={<MyBookingsScreen />} />
-          <Route path="/profile" element={<UserProfile />} />
+          <Route
+            path="/profile"
+            element={<UserProfile handleAppBarRefresh={handleAppBarRefresh} />}
+          />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState,  useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   IconButton,
   Button,
@@ -310,7 +310,7 @@ const BookingsTab = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {bookings.length &&
+                {bookings.length > 0 &&
                   bookings.map((booking, index) => (
                     <TableRow key={booking._id}>
                       <TableCell>{index + 1}.</TableCell>

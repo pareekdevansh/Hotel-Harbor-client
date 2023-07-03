@@ -55,12 +55,13 @@ function RegisterScreen() {
         password,
       };
       try {
-        console.log("user: ", user);
+        console.log("before call with user: ", user);
         const { data } = await axios.post("/api/auth/register", user, config);
         console.log(`response: ${JSON.stringify(data)}`);
         setTimeout(() => {
           setSuccess(data);
         }, duration);
+        setLoading(false);
         makeFieldsEmpty();
         navigate("/login");
       } catch (error) {

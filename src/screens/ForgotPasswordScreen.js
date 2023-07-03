@@ -52,12 +52,14 @@ const ForgotPasswordScreen = () => {
 
   return (
     <Box display="flex" justifyContent="center" alignItems="center">
-      <Stack
-        direction="column"
-        justifyContent={"center"}
-        margin={2}
-        sx={{ width: "auto" }}
-        spacing={2}
+      <Container
+        maxWidth="sm"
+        sx={{
+          border: "1px solid #ccc",
+          marginTop: "30px",
+          borderRadius: "4px",
+          padding: "20px",
+        }}
       >
         {loading ? (
           <Loader />
@@ -78,16 +80,6 @@ const ForgotPasswordScreen = () => {
         ) : (
           <></>
         )}
-      </Stack>
-      <Container
-        maxWidth="sm"
-        sx={{
-          border: "1px solid #ccc",
-          marginTop: "30px",
-          borderRadius: "4px",
-          padding: "20px",
-        }}
-      >
         <Typography variant="h4" align="center" gutterBottom>
           Forgot Password
         </Typography>

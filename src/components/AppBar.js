@@ -68,7 +68,7 @@ export default function MenuAppBar({ refreshAppBar }) {
 
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static">
+      <AppBar position="static" sx={{ paddingX: 1 }}>
         <Toolbar>
           <Typography
             variant="h6"
@@ -83,7 +83,7 @@ export default function MenuAppBar({ refreshAppBar }) {
             Hotel Harbor
           </Typography>
 
-          {!user?.email > 0  || !user?.name > 0 ? (
+          {!user?.email > 0 || !user?.name > 0 ? (
             <Stack ml={"auto"} direction="row" spacing={1} alignItems="center">
               <Typography
                 variant="body1"
@@ -111,7 +111,7 @@ export default function MenuAppBar({ refreshAppBar }) {
               </Typography>
             </Stack>
           ) : (
-            <Stack ml={"auto"} direction="row" spacing={1} alignItems="center">
+            <Stack ml={"auto"} direction="row" alignItems="center">
               <Typography variant="body1">{user?.name}</Typography>
               <IconButton
                 size="large"

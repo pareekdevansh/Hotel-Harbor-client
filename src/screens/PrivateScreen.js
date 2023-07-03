@@ -50,12 +50,10 @@ function PrivateScreen({ handleAppBarRefresh }) {
           console.log(
             "##@@2value is: ",
             JSON.parse(localStorage.getItem("currentUser"))
-            );
-            console.log("##@@calling refresh state");
+          );
+          console.log("##@@calling refresh state");
           handleAppBarRefresh();
-          setTimeout(() => {
-            
-          }, 500)
+          setTimeout(() => {}, 500);
           console.log("##@@after timeout ");
           setLoading(false);
           navigate("/home");
@@ -75,7 +73,7 @@ function PrivateScreen({ handleAppBarRefresh }) {
 
   return (
     <div>
-      {error ? (
+      {/* {error ? (
         <Error errorMessage={error} />
       ) : (
         <Fade in={true}>
@@ -85,7 +83,7 @@ function PrivateScreen({ handleAppBarRefresh }) {
             <p>Loading Rooms for you...</p>
           </div>
         </Fade>
-      )}
+      )} */}
     </div>
   );
 }
