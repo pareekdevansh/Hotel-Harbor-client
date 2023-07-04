@@ -14,7 +14,6 @@ import InputAdornment from "@mui/material/InputAdornment";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { duration } from "@mui/material";
-require("dotenv").config();
 function LoginScreen() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -54,7 +53,11 @@ function LoginScreen() {
     };
     try {
       console.log("before making login call with data: ", user);
-      const { data } = await axios.post(`${process.env.SERVER_URL}/api/auth/login`, user, config);
+      const { data } = await axios.post(
+        `${process.env.REACT_APP_SERVER_URL}/api/auth/login`,
+        user,
+        config
+      );
       console.log("login response : ", data);
       localStorage.setItem("authToken", data.token);
       console.log("a fresh token received: ", data.token);
@@ -69,11 +72,11 @@ function LoginScreen() {
       navigate("/");
     } catch (error) {
       setLoading(false);
+      console.log("error json: ", JSON.stringify(error));
+      setError(error.response.data.error || "Something went wrong!");
       setTimeout(() => {
-        console.log("error json: ", JSON.stringify(error));
-        setError(error.response.data.error || "Something went wrong!");
+        setError("");
       }, errorDuration);
-      setError("");
     }
   }
   return (
@@ -82,7 +85,7 @@ function LoginScreen() {
         <Typography noWrap variant="h4">
           Login Screen
         </Typography>
-        {loading && <Loader /> }
+        {loading && <Loader />}
         {error && <Error errorMessage={error} />}
         {success && <Success message={error} />}
 

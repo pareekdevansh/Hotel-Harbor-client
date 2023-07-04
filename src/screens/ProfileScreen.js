@@ -16,7 +16,7 @@ function UserProfile({ handleAppBarRefresh }) {
     setTimeout(() => {
       setError("");
       if (login) {
-        navigate("/login");
+        handleLogout();
       }
     }, duration);
   };
@@ -59,8 +59,8 @@ function UserProfile({ handleAppBarRefresh }) {
           </>
         )}
         {!user && (
-          <Typography variant="subtitle1" color="text.secondary">
-            Session Time Out.. Please Login Again
+          <Typography variant="subtitle1" color="error">
+            Session Timeout!!
           </Typography>
         )}
       </CardContent>

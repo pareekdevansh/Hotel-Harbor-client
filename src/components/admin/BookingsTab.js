@@ -29,7 +29,6 @@ import dayjs from "dayjs";
 import { styled } from "@mui/system";
 import { DatePicker } from "@mui/x-date-pickers";
 import BasicDatePicker from "../Datepicker";
-
 const BookingsTab = () => {
   const navigate = useNavigate();
   const TableContainer = styled("div")({
@@ -91,13 +90,15 @@ const BookingsTab = () => {
       setLoading(true);
       try {
         console.log("calling booking endpoint ");
-        const response = await axios.get("/api/admin/bookings");
+        const response = await axios.get(
+          `${process.env.REACT_APP_SERVER_URL}/api/admin/bookings`
+        );
         console.log("bookings[] : ", bookings);
         if (!isCancelled) setBookings(response.data);
       } catch (error) {
         setLoading(false);
-        setError(error.message);
-        console.log(error.message);
+        setError(error?.response?.data?.error || "Something went wrong");
+        console.log(error?.response?.data?.error);
       }
       setLoading(false);
     };
@@ -107,11 +108,13 @@ const BookingsTab = () => {
       }
       setLoading(true);
       try {
-        const response = await axios.get("/api/admin/rooms");
+        const response = await axios.get(
+          `${process.env.REACT_APP_SERVER_URL}/api/admin/rooms`
+        );
         const roomIdsList = await response.data.map((room) => room._id);
         if (!isCancelled) setRoomIds(roomIdsList);
       } catch (error) {
-        setError(error.message);
+        setError(error?.response?.data?.error);
       }
       setLoading(false);
     };
@@ -121,11 +124,13 @@ const BookingsTab = () => {
       }
       setLoading(true);
       try {
-        const response = await axios.get("/api/admin/users");
+        const response = await axios.get(
+          `${process.env.REACT_APP_SERVER_URL}/api/admin/users`
+        );
         const userIdsList = await response.data.map((user) => user._id);
         if (!isCancelled) setUserIds(userIdsList);
       } catch (error) {
-        setError(error.message);
+        setError(error?.response?.data?.error || "Something went wrong");
       }
       setLoading(false);
     };
@@ -192,9 +197,9 @@ const BookingsTab = () => {
     setLoading(true);
     try {
       const deleteBooking = await axios.delete(
-        `/api/admin/bookings/${bookingId}`
+        `${process.env.REACT_APP_SERVER_URL}/api/admin/bookings/${bookingId}`
       );
-      console.log("delete booking response: ", deleteBooking.data);
+      console.log("delete booking response: ", deleteBooking);
       callGetAllBookings();
       callGetRoomIds();
       callGetUserIds();
@@ -234,7 +239,7 @@ const BookingsTab = () => {
           status: formData.status,
         };
         const updatedBooking = await axios.put(
-          `/api/admin/bookings/${selectedBooking._id}`,
+          `${process.env.REACT_APP_SERVER_URL}/api/admin/bookings/${selectedBooking._id}`,
           booking
         );
         console.log("Updated booking:", updatedBooking.data);
@@ -248,14 +253,17 @@ const BookingsTab = () => {
           status: formData.status,
         };
         console.log("call to new booking function");
-        const newBooking = await axios.post("/api/admin/bookings", booking);
+        const newBooking = await axios.post(
+          `${process.env.REACT_APP_SERVER_URL}/api/admin/bookings`,
+          booking
+        );
         console.log("New booking:", newBooking.data);
       }
       setLoading(false);
     } catch (error) {
       console.error("Error saving booking: ", error);
       setLoading(false);
-      setError(error.message);
+      setError(error?.response?.data?.error || "Booking Failed!!");
     }
     callGetAllBookings();
     callGetRoomIds();

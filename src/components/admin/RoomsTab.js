@@ -22,7 +22,6 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { AddCircleOutline as AddCircleOutlineIcon } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-
 const RoomsTab = () => {
   const navigate = useNavigate();
   const TableContainer = styled("div")({
@@ -63,12 +62,16 @@ const RoomsTab = () => {
       setLoading(true);
       try {
         console.log("calling room endpoint ");
-        const response = (await axios.get("/api/admin/rooms/")).data;
+        const response = (
+          await axios.get(
+            `${process.env.REACT_APP_SERVER_URL}/api/admin/rooms/`
+          )
+        ).data;
         console.log("rooms[] : ", response);
         if (!isCancelled) setRooms(response);
       } catch (error) {
-        setError(error.message);
-        console.log(error.message);
+        setError(error?.response?.data?.error || "Something went wrong");
+        console.log(error?.response?.data?.error || "Something went wrong");
       }
       setLoading(false);
     };
@@ -153,11 +156,13 @@ const RoomsTab = () => {
     // Delete room from the server
     setLoading(true);
     try {
-      const deleteRoom = await axios.delete(`/api/admin/rooms/${roomId}`);
-      console.log("delete room response: ", deleteRoom.data);
+      const deleteRoom = await axios.delete(
+        `${process.env.REACT_APP_SERVER_URL}/api/admin/rooms/${roomId}`
+      );
+      console.log("delete room response: ", deleteRoom);
       callGetAllRooms();
     } catch (error) {
-      setError(error.message);
+      setError(error?.response?.data?.error || "Something went wrong");
     }
     setLoading(false);
   };
@@ -192,18 +197,21 @@ const RoomsTab = () => {
       };
       if (selectedRoom) {
         const newRoom = await axios.put(
-          `/api/admin/rooms/${selectedRoom._id}`,
+          `${process.env.REACT_APP_SERVER_URL}/api/admin/rooms/${selectedRoom._id}`,
           roomData
         );
         console.log("newRoom: ", newRoom.data);
       } else {
-        const newRoom = await axios.post("/api/admin/rooms", roomData);
+        const newRoom = await axios.post(
+          `${process.env.REACT_APP_SERVER_URL}/api/admin/rooms`,
+          roomData
+        );
         console.log("newRoom: ", newRoom.data);
       }
       callGetAllRooms();
     } catch (error) {
-      console.log(error.message);
-      setError(error.message);
+      console.log(error?.response?.data?.error || "Something went wrong");
+      setError(error?.response?.data?.error || "Something went wrong");
     }
     setLoading(false);
     handleCloseDialog();

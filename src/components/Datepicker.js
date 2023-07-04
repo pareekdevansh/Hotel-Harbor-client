@@ -36,6 +36,7 @@ export default function BasicDatePicker({
           <DatePicker
             label="Check-in date"
             value={checkInDate}
+            format="DD/MM/YYYY"
             onChange={(newValue) => {
               handleDateChange([newValue, checkOutDate]);
             }}
@@ -43,6 +44,7 @@ export default function BasicDatePicker({
           <DatePicker
             label="Check-out date"
             value={checkOutDate}
+            format="DD/MM/YYYY"
             onChange={(newValue) => {
               handleDateChange([checkInDate, newValue]);
             }}

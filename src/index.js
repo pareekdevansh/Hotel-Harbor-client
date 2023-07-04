@@ -3,17 +3,6 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
-// import { createProxyMiddleware } from "http-proxy-middleware";
-// // require("dotenv").config();
-// const proxy = createProxyMiddleware({
-//   // target: process.env.SERVER_URL,
-//   target: "http://localhost:5000",
-//   changeOrigin: true,
-//   headers: {
-//     // "Access-Control-Allow-Origin": process.env.CLIENT_URL,
-//     "Access-Control-Allow-Origin": "http://localhost:3000",
-//   },
-// });
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(<React.StrictMode>{<App />}</React.StrictMode>);

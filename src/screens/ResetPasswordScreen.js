@@ -12,7 +12,6 @@ import axios from "axios";
 import Loader from "../components/Loader";
 import Success from "../components/Success";
 import Error from "../components/Error";
-require("dotenv").config();
 const ResetPasswordScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,7 +37,7 @@ const ResetPasswordScreen = () => {
     try {
       console.log("token is : ", resetToken);
       const response = await axios.put(
-        `${process.env.SERVER_URL}/api/auth/resetpassword/${resetToken}`,
+        `${process.env.REACT_APP_SERVER_URL}/api/auth/resetpassword/${resetToken}`,
         { password },
         config
       );
@@ -50,7 +49,7 @@ const ResetPasswordScreen = () => {
       }, duration);
     } catch (error) {
       setLoading(false);
-      setError(error.response.data.error || "Something went wrong!");
+      setError(error?.response?.data?.error || "Something went wrong!");
     }
   };
   return (

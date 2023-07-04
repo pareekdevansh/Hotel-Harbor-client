@@ -11,8 +11,6 @@ import axios from "axios";
 import Loader from "../components/Loader";
 import Error from "../components/Error";
 import Success from "../components/Success";
-require("dotenv").config();
-
 const ForgotPasswordScreen = () => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -30,7 +28,7 @@ const ForgotPasswordScreen = () => {
     try {
       console.log("calling forgot password ");
       const response = await axios.post(
-        `${process.env.SERVER_URL}/api/auth/forgotpassword`,
+        `${process.env.REACT_APP_SERVER_URL}/api/auth/forgotpassword`,
         { email },
         config
       );
@@ -44,7 +42,7 @@ const ForgotPasswordScreen = () => {
         setError("");
       }, duration);
     } catch (error) {
-      setError(error.response.data.error || "Something went wrong!");
+      setError(error?.response?.data?.error || "Something went wrong!");
       setTimeout(() => {
         setError("");
       }, duration);

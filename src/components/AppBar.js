@@ -22,7 +22,6 @@ export default function MenuAppBar({ refreshAppBar }) {
   }
 
   useState(() => {
-    console.log("##@@called useEffect from menubar");
     const user = JSON.parse(localStorage.getItem("currentUser"));
     setUser(user);
   }, [refreshAppBar]);

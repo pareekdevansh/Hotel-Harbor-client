@@ -6,7 +6,6 @@ import { useState, useEffect, useRef } from "react";
 import Loader from "./Loader";
 import Error from "./Error";
 import Success from "./Success";
-
 function CheckoutSuccess() {
   const navigate = useNavigate();
   const [bookingSuccessful, setBookingSuccessful] = useState(false);
@@ -45,7 +44,11 @@ function CheckoutSuccess() {
         };
         console.log("bookingId is ", JSON.stringify(bookingId));
         const response = (
-          await axios.put("/api/bookings/bookroom", { bookingId }, config)
+          await axios.put(
+            `${process.env.REACT_APP_SERVER_URL}/api/bookings/bookroom`,
+            { bookingId },
+            config
+          )
         ).data;
         console.log(response);
         setBookingSuccessful(true);
@@ -79,23 +82,6 @@ function CheckoutSuccess() {
     }
   }, [bookingSuccessful]);
 
-  // async function bookRoom() {
-  //   try {
-  //     const user = await JSON.parse(localStorage.getItem("currentUser"));
-  //     console.log(JSON.stringify(user?._id));
-  //     const booking = {
-  //       roomId: roomId,
-  //       userId: user._id,
-  //       checkInDate: checkInDate,
-  //       checkOutDate: checkOutDate,
-  //     };
-  //     console.log(JSON.stringify(booking));
-  //     const response = await axios.post("/api/bookings/bookroom", booking);
-  //     console.log(response);
-  //   } catch (error) {
-  //     throw error;
-  //   }
-  // }
   return (
     <div>
       {loading && <Loader />}

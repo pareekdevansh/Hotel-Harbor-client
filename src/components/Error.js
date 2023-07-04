@@ -1,22 +1,28 @@
 import React from "react";
 import Alert from "@mui/material/Alert";
 import AlertTitle from "@mui/material/AlertTitle";
+import { Box } from "@mui/material";
 
 function Error({ errorMessage = "Oops! Something went wrong." }) {
   return (
-    <div
+    <Box
+      fullWidth
       style={{
         position: "fixed",
         bottom: "20px",
-        left: "50%",
-        transform: "translateX(-50%)",
+        left: 0,
+        right: 0,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        padding: "8px",
       }}
     >
-      <Alert severity="error">
+      <Alert severity="error" align="center" padding="10px">
         <AlertTitle>Error</AlertTitle>
         {errorMessage}
       </Alert>
-    </div>
+    </Box>
   );
 }
 

@@ -50,8 +50,16 @@ function App() {
             path="/checkout-success/:roomId/:checkInDate/:checkOutDate/:bookingId"
             element={<CheckoutSuccess />}
           />
-          <Route path="/admin" element={<AdminScreen />} />
-          <Route path="/bookings" element={<MyBookingsScreen />} />
+          <Route
+            path="/admin"
+            element={<AdminScreen handleAppBarRefresh={handleAppBarRefresh} />}
+          />
+          <Route
+            path="/bookings"
+            element={
+              <MyBookingsScreen handleAppBarRefresh={handleAppBarRefresh} />
+            }
+          />
           <Route
             path="/profile"
             element={<UserProfile handleAppBarRefresh={handleAppBarRefresh} />}

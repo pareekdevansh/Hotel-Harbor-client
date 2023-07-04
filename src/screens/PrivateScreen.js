@@ -4,17 +4,16 @@ import { useNavigate } from "react-router-dom";
 import Error from "../components/Error";
 import Loader from "../components/Loader";
 import { Fade } from "@mui/material";
-require("dotenv").config();
 function PrivateScreen({ handleAppBarRefresh }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const duration = 2000;
   const navigate = useNavigate();
 
-
   const logOut = () => {
     localStorage.removeItem("authToken");
     localStorage.removeItem("currentUser");
+    handleAppBarRefresh();
     navigate("/login");
   };
   const showError = (message, login) => {
@@ -44,7 +43,10 @@ function PrivateScreen({ handleAppBarRefresh }) {
           },
         };
         try {
-          const response = await axios.get(`${process.env.SERVER_URL}/api/private`, config);
+          const response = await axios.get(
+            `${process.env.REACT_APP_SERVER_URL}/api/private`,
+            config
+          );
           console.log("response is ", response.data);
           localStorage.setItem("currentUser", JSON.stringify(response.data));
           const value = JSON.parse(localStorage.getItem("currentUser"));
@@ -64,8 +66,13 @@ function PrivateScreen({ handleAppBarRefresh }) {
             "getUserPrivateDetails: error is : ",
             JSON.stringify(error)
           );
-          let login = error.message === "No User Found" || "Please Login First";
-          showError(error.message, login);
+          let login =
+            error?.response?.data?.error === "No User Found" ||
+            "Please Login First";
+          showError(
+            error?.response?.data?.error || "Something went wrong",
+            login
+          );
         }
       };
       fetchPrivateDate();

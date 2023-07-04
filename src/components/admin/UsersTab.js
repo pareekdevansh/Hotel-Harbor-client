@@ -27,7 +27,6 @@ import { styled } from "@mui/system";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
-
 const UsersTab = () => {
   const navigate = useNavigate();
   const TableContainer = styled("div")({
@@ -78,12 +77,14 @@ const UsersTab = () => {
       setLoading(true);
       try {
         console.log("calling user endpoint");
-        const response = (await axios.get("/api/admin/users")).data;
+        const response = (
+          await axios.get(`${process.env.REACT_APP_SERVER_URL}/api/admin/users`)
+        ).data;
         if (!isCancelled) setUsers(response);
         console.log("Response[] : ", response);
       } catch (error) {
-        setError(error.message);
-        console.log(error.message);
+        setError(error?.response?.data?.error || "Something went wrong");
+        console.log(error?.response?.data?.error || "Something went wrong");
       }
       setLoading(false);
     };
@@ -130,7 +131,9 @@ const UsersTab = () => {
     // Delete user from the server
     setLoading(true);
     try {
-      const deleteUser = await axios.delete(`/api/admin/users/${userId}`);
+      const deleteUser = await axios.delete(
+        `${process.env.REACT_APP_SERVER_URL}/api/admin/users/${userId}`
+      );
       callFetchData();
     } catch (error) {
       setLoading(false);
@@ -158,7 +161,7 @@ const UsersTab = () => {
           isAdmin: formData.isAdmin,
         };
         const newUser = await axios.put(
-          `/api/admin/users/${selectedUser._id}`,
+          `${process.env.REACT_APP_SERVER_URL}/api/admin/users/${selectedUser._id}`,
           userData
         );
         console.log("newUser: ", newUser.data);
@@ -169,13 +172,16 @@ const UsersTab = () => {
           password: formData.password,
           isAdmin: formData.isAdmin,
         };
-        const newUser = await axios.post("/api/admin/users", userData);
+        const newUser = await axios.post(
+          `${process.env.REACT_APP_SERVER_URL}/api/admin/users`,
+          userData
+        );
         console.log("newUser: ", newUser.data);
       }
     } catch (error) {
       console.log(error.response.data.error);
       setLoading(false);
-      setError(error.message);
+      setError(error?.response?.data?.error);
     }
     callFetchData();
     handleCloseDialog();

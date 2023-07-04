@@ -6,7 +6,6 @@ import Error from "../components/Error";
 import dayjs from "dayjs";
 import Success from "../components/Success";
 import PaymentButton from "../components/PayButton";
-require("dotenv").config();
 function BookingScreen() {
   const navigate = useNavigate();
   const roomId = useParams().roomId;
@@ -49,8 +48,14 @@ function BookingScreen() {
     setError("");
     try {
       // Getting room details
-      const data = (await axios.post(`${process.env.SERVER_URL}/api/rooms/getroombyid/`, { id: roomId }))
-        .data;
+      const data = (
+        await axios.post(
+          `${process.env.REACT_APP_SERVER_URL}/api/rooms/getroombyid/`,
+          {
+            id: roomId,
+          }
+        )
+      ).data;
       setRoom(data);
       setLoading(false);
     } catch (error) {
@@ -81,7 +86,7 @@ function BookingScreen() {
     console.log(JSON.stringify(booking));
     try {
       const response = await axios.post(
-        `${process.env.SERVER_URL}/api/stripe/create-checkout-session/`,
+        `/api/stripe/create-checkout-session/`,
         booking,
         config
       );
