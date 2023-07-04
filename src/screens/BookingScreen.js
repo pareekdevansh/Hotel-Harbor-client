@@ -98,6 +98,7 @@ function BookingScreen() {
         window.location.href = response.data.url;
       }
     } catch (error) {
+      console.log("error: ", JSON.stringify(error ))
       let login =
         error.response.data.error === "Please Login First" ||
         error.response.data.error === "No User Found";
