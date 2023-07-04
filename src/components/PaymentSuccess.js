@@ -53,6 +53,7 @@ function CheckoutSuccess() {
         console.log(response);
         setBookingSuccessful(true);
       } catch (error) {
+        console.log("error is : " , JSON.stringify(error));
         // let login =
         //   error.response.data.error === "No User Found" || "Please Login First";
         showError(error.response.data.error, false);

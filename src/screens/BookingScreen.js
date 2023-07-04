@@ -86,7 +86,7 @@ function BookingScreen() {
     console.log(JSON.stringify(booking));
     try {
       const response = await axios.post(
-        `/api/stripe/create-checkout-session/`,
+        `${process.env.REACT_APP_SERVER_URL}/api/stripe/create-checkout-session/`,
         booking,
         config
       );
@@ -98,7 +98,7 @@ function BookingScreen() {
         window.location.href = response.data.url;
       }
     } catch (error) {
-      console.log("error: ", JSON.stringify(error ))
+      console.log("error: ", JSON.stringify(error));
       let login =
         error.response.data.error === "Please Login First" ||
         error.response.data.error === "No User Found";
