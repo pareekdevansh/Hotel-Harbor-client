@@ -10,6 +10,7 @@ import dayjs from "dayjs";
 import RoomFilter from "../components/RoomFilter";
 import RoomSort from "../components/RoomSort";
 import MenuAppBar from "../components/AppBar";
+require("dotenv").config();
 function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -57,7 +58,7 @@ function HomeScreen() {
   const [checkOutDate, setCheckOutDate] = useState(threeDaysLater);
   const getAllRooms = async () => {
     try {
-      const response = await axios.get("/api/rooms/getallrooms");
+      const response = await axios.get(`${process.env.SERVER_URL}/api/rooms/getallrooms`);
       console.log("@getAllRooms response[] ", response.data);
       setRooms(response.data);
     } catch (error) {

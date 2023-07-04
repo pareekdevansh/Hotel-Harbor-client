@@ -3,6 +3,7 @@ import { Typography, Stack, Box, Card, CardContent } from "@mui/material";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import BookedRoom from "../components/BookedRoom";
+require("dotenv").config();
 function MyBookingsScreen() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -34,7 +35,7 @@ function MyBookingsScreen() {
           return;
         }
         const bookings = (
-          await axios.post("/api/bookings/getbookigsfromemail", {
+          await axios.post( `${process.env.SERVER_URL}/api/bookings/getbookigsfromemail`, {
             email: email,
           })
         ).data;

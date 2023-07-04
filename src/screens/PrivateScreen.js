@@ -4,11 +4,13 @@ import { useNavigate } from "react-router-dom";
 import Error from "../components/Error";
 import Loader from "../components/Loader";
 import { Fade } from "@mui/material";
+require("dotenv").config();
 function PrivateScreen({ handleAppBarRefresh }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const duration = 2000;
   const navigate = useNavigate();
+
 
   const logOut = () => {
     localStorage.removeItem("authToken");
@@ -42,7 +44,7 @@ function PrivateScreen({ handleAppBarRefresh }) {
           },
         };
         try {
-          const response = await axios.get("/api/private", config);
+          const response = await axios.get(`${process.env.SERVER_URL}/api/private`, config);
           console.log("response is ", response.data);
           localStorage.setItem("currentUser", JSON.stringify(response.data));
           const value = JSON.parse(localStorage.getItem("currentUser"));

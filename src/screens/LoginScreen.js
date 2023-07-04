@@ -14,6 +14,7 @@ import InputAdornment from "@mui/material/InputAdornment";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { duration } from "@mui/material";
+require("dotenv").config();
 function LoginScreen() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -53,7 +54,7 @@ function LoginScreen() {
     };
     try {
       console.log("before making login call with data: ", user);
-      const { data } = await axios.post("/api/auth/login", user, config);
+      const { data } = await axios.post(`${process.env.SERVER_URL}/api/auth/login`, user, config);
       console.log("login response : ", data);
       localStorage.setItem("authToken", data.token);
       console.log("a fresh token received: ", data.token);

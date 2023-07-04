@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import Loader from "../components/Loader";
 import Success from "../components/Success";
 import Error from "../components/Error";
+require("dotenv").config();
 function RegisterScreen() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -56,7 +57,7 @@ function RegisterScreen() {
       };
       try {
         console.log("before call with user: ", user);
-        const { data } = await axios.post("/api/auth/register", user, config);
+        const { data } = await axios.post(`${process.env.SERVER_URL}/api/auth/register`, user, config);
         console.log(`response: ${JSON.stringify(data)}`);
         setTimeout(() => {
           setSuccess(data);

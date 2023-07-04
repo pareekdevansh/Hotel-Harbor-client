@@ -3,7 +3,7 @@ import { Tabs, Tab } from "@mui/material";
 import BookingsTab from "../components/admin/BookingsTab";
 import UsersTab from "../components/admin/UsersTab";
 import RoomsTab from "../components/admin/RoomsTab";
-
+require("dotenv").config();
 const AdminScreen = () => {
   const [activeTab, setActiveTab] = React.useState(0);
 
