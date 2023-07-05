@@ -73,7 +73,7 @@ function LoginScreen() {
     } catch (error) {
       setLoading(false);
       console.log("error json: ", JSON.stringify(error));
-      setError(error.response.data.error || "Something went wrong!");
+      setError(error?.response?.data?.error || "Something went wrong!");
       setTimeout(() => {
         setError("");
       }, errorDuration);

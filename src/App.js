@@ -14,6 +14,7 @@ import ResetPasswordScreen from "./screens/ResetPasswordScreen";
 import PrivateScreen from "./screens/PrivateScreen";
 import AdminScreen from "./screens/AdminScreen";
 import MenuAppBar from "./components/AppBar";
+import EmailVerificationScreen from "./screens/EmailVerificationScreen";
 
 function App() {
   const [refreshAppBar, setRefreshAppBar] = useState(false);
@@ -35,7 +36,12 @@ function App() {
               <PrivateScreen handleAppBarRefresh={handleAppBarRefresh} />
             }
           />
+
           <Route path="/register" element={<RegisterScreen />} />
+          <Route
+            path="/verifyemail/:verificationToken"
+            element={<EmailVerificationScreen />}
+          />
           <Route path="/forgotpassword" element={<ForgotPasswordScreen />} />
           <Route
             path="/resetpassword/:resetToken"

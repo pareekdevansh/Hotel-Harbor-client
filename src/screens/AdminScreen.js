@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Tabs, Tab, Typography } from "@mui/material";
+import { Tabs, Tab, Typography, styled } from "@mui/material";
 import BookingsTab from "../components/admin/BookingsTab";
 import UsersTab from "../components/admin/UsersTab";
 import RoomsTab from "../components/admin/RoomsTab";
@@ -85,11 +85,11 @@ const AdminScreen = ({ handleAppBarRefresh }) => {
         <Loader />
       ) : adminAccess ? (
         <>
-          <Tabs value={activeTab} onChange={handleTabChange}>
-            <Tab label="Booking" />
-            <Tab label="User" />
-            <Tab label="Room" />
-          </Tabs>
+            <Tabs value={activeTab} onChange={handleTabChange}>
+              <Tab label="Booking" />
+              <Tab label="User" />
+              <Tab label="Room" />
+            </Tabs>
           {activeTab === 0 && <BookingsTab />}
           {activeTab === 1 && <UsersTab />}
           {activeTab === 2 && <RoomsTab />}

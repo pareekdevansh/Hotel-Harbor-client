@@ -23,7 +23,7 @@ function RegisterScreen() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const duration = 3000;
+  const duration = 5000;
   function makeFieldsEmpty() {
     setName("");
     setEmail("");
@@ -62,24 +62,21 @@ function RegisterScreen() {
           config
         );
         console.log(`response: ${JSON.stringify(data)}`);
-        setTimeout(() => {
-          setSuccess(data);
-        }, duration);
+        setSuccess(true);
         setLoading(false);
+        setTimeout(() => {}, duration);
         makeFieldsEmpty();
-        navigate("/login");
       } catch (error) {
         setLoading(false);
-        setTimeout(() => {
-          setError(error?.response?.data?.error || "Registeration Failed!!");
-        }, duration);
+        console.log("error is : ", error);
+        setError(error?.response?.data?.error || "Registeration Failed!!");
+        setTimeout(() => {}, duration);
         setError("");
       }
     } else {
       setLoading(false);
-      setTimeout(() => {
-        setError("Please Confirm Password Again!!");
-      }, duration);
+      setError("Please Confirm Password Again!!");
+      setTimeout(() => {}, duration);
       setError("");
     }
   }
@@ -92,7 +89,7 @@ function RegisterScreen() {
           Register Screen
         </Typography>
         {error && <Error errorMessage={error} />}
-        {success && <Success message={"User Registration Successful!"} />}
+
         <Stack direction="column" marginTop={"30px"} spacing={1}>
           <TextField
             id="outlined-basic"
@@ -174,7 +171,13 @@ function RegisterScreen() {
           </Typography>
           <Button onClick={onNavigateToLoginRoute}>Login</Button>
         </Stack>
-        {success && <Success message={"Registered Successfully"} />}
+        {success && (
+          <Success
+            message={
+              "Registration Successful !! Please Check your mailbox for verification!"
+            }
+          />
+        )}
       </Stack>
     </Box>
   );
