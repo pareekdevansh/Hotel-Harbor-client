@@ -5,6 +5,7 @@ import BookingsTab from "../components/admin/BookingsTab";
 import UsersTab from "../components/admin/UsersTab";
 import RoomsTab from "../components/admin/RoomsTab";
 import axios from "axios";
+import Loader from "../components/Loader";
 const AdminScreen = ({ handleAppBarRefresh }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = React.useState(0);
@@ -80,19 +81,23 @@ const AdminScreen = ({ handleAppBarRefresh }) => {
 
   return (
     <div>
-      {!adminAccess ? (
-        <Typography padding={3} variant="h4" gutterBottom>
-          You Do not have admin Access!!
-        </Typography>
-      ) : (
-        <Tabs value={activeTab} onChange={handleTabChange}>
+      {loading ? (
+        <Loader />
+      ) : adminAccess ? (
+        <>
+          <Tabs value={activeTab} onChange={handleTabChange}>
+            <Tab label="Booking" />
+            <Tab label="User" />
+            <Tab label="Room" />
+          </Tabs>
           {activeTab === 0 && <BookingsTab />}
           {activeTab === 1 && <UsersTab />}
           {activeTab === 2 && <RoomsTab />}
-          <Tab label="Booking" />
-          <Tab label="User" />
-          <Tab label="Room" />
-        </Tabs>
+        </>
+      ) : (
+        <Typography padding={3} variant="h4" gutterBottom>
+          You Do not have admin Access!!
+        </Typography>
       )}
     </div>
   );
