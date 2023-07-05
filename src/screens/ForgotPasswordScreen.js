@@ -50,64 +50,59 @@ const ForgotPasswordScreen = () => {
   };
 
   return (
-    <Box display="flex" justifyContent="center" alignItems="center">
-      <Container
-        maxWidth="sm"
-        sx={{
-          border: "1px solid #ccc",
-          marginTop: "30px",
-          borderRadius: "4px",
-          padding: "20px",
-        }}
-      >
-        {loading ? (
-          <Loader />
-        ) : error ? (
-          <>
-            <Error errorMessage={success} />
-            {setTimeout(() => {
-              setSuccess("");
-            }, duration)}
-          </>
-        ) : success ? (
+    <Stack
+      direction={"column"}
+      display="flex"
+      justifyContent="center"
+      alignItems="center"
+    >
+      {loading && <Loader />}
+      <Typography variant="h4" align="center" gutterBottom>
+        Forgot Password
+      </Typography>
+      <Typography variant="body1" align="center" mb={2} gutterBottom>
+        Enter email to reset your password.
+      </Typography>
+      <form>
+        <Container sx={{ display: "flex", justifyContent: "center" }}>
+          <TextField
+            label="Email"
+            variant="outlined"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            fullWidth
+            sx={{ maxWidth: "300px", marginBottom: "10px" }}
+          />
+        </Container>
+        <Container sx={{ display: "flex", justifyContent: "center" }}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={forgotPasswordHandler}
+          >
+            Request Reset Link
+          </Button>
+        </Container>
+      </form>
+      <Box bottom={"10px"}>
+        {success && (
           <>
             <Success successMessage={success} />
             {setTimeout(() => {
               setSuccess("");
             }, duration)}
           </>
-        ) : (
-          <></>
         )}
-        <Typography variant="h4" align="center" gutterBottom>
-          Forgot Password
-        </Typography>
-        <Typography variant="body1" align="center" mb={2} gutterBottom>
-          Enter email to reset your password.
-        </Typography>
-        <form>
-          <Container sx={{ display: "flex", justifyContent: "center" }}>
-            <TextField
-              label="Email"
-              variant="outlined"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              fullWidth
-              sx={{ maxWidth: "300px", marginBottom: "10px" }}
-            />
-          </Container>
-          <Container sx={{ display: "flex", justifyContent: "center" }}>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={forgotPasswordHandler}
-            >
-              Request Reset Link
-            </Button>
-          </Container>
-        </form>
-      </Container>
-    </Box>
+        {error && (
+          <>
+            <Error errorMessage={success} />
+            {setTimeout(() => {
+              setSuccess("");
+            }, duration)}
+          </>
+        )}
+      </Box>
+    </Stack>
   );
 };
 

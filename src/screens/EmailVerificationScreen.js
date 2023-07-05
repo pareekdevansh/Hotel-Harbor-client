@@ -13,34 +13,35 @@ function EmailVerificationScreen() {
   const [success, setSuccess] = useState(false);
   const verificationToken = useParams().verificationToken;
   useEffect(() => {
+     const verifyEmail = async () => {
+       try {
+         setLoading(true);
+         console.log("emailVerificationToken: ", verificationToken);
+         const response = await axios.put(
+           `${process.env.REACT_APP_SERVER_URL}/api/auth/verifyemail/${verificationToken}`
+         );
+         setSuccess(true);
+         setTimeout(() => {
+           setSuccess(false);
+           navigate("/login");
+         }, 2000);
+       } catch (error) {
+         console.log("error in verifying email : ", JSON.stringify(error));
+         setError(error?.response?.data?.error || "Something went wrong!!");
+       }
+    };
     setLoading(true);
-  }, []);
-  const verifyEmail = async () => {
-    try {
-      setLoading(true);
-      console.log("emailVerificationToken: ", verificationToken);
-      const response = await axios.put(
-        `${process.env.REACT_APP_SERVER_URL}/api/auth/${verificationToken}`
-      );
-      setSuccess(true);
-      setTimeout(() => {
-        setLoading(false);
-        setSuccess(false);
-        navigate("/login");
-      }, 2000);
-    } catch (error) {
-      console.log("error in verifying email : ", JSON.stringify(error));
+    setTimeout(() => {
+      console.log("going inside verifyEmail() Function now ")
+      verifyEmail();
       setLoading(false);
-      setError(error?.response?.data?.error || "Something went wrong!!");
-    }
-  };
+    }, 2000);
+  }, []);
+ 
   return (
-    <Stack direction="column" spacing={2}>
+    <Stack direction="column" spacing={2} alignItems="center">
       <Typography variant="h4">Email Verification Page</Typography>
       {loading && <Loader />}
-      <Button variant="contained" onClick={verifyEmail} sx={{ width: "50%" }}>
-        Proceed for Email Verification
-      </Button>
       <Box sx={{ position: "fixed", bottom: "10px" }}>
         {success && <Success message="Email verified successfully" />}
         {error && <Error errorMessage={error} />}
